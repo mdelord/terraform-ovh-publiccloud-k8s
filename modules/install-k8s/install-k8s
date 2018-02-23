@@ -1,0 +1,251 @@
+#!/bin/bash
+# This script can be used to install Kubernetes and its dependencies. This script has been tested with the CentOS 7 operating system.
+
+set -e
+
+readonly DEFAULT_INSTALL_PATH="/opt/k8s"
+
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_NAME="$(basename "$0")"
+
+function print_usage {
+  echo
+  echo "Usage: install-k8s [OPTIONS]"
+  echo
+  echo "This script can be used to install Kubernetes and its dependencies. This script has been tested with CentOS 7."
+  echo
+  echo "Options:"
+  echo
+  echo -e "  --k8s-version\t\tThe version of Kubernetes to install. Required."
+  echo -e "  --calico-node-version\t\tThe version of Calico node docker image to install. Required."
+  echo -e "  --calico-cni-version\t\tThe version of Calico CNI docker image to install. Required."
+  echo -e "  --flannel-version\t\tThe version of Flannel docker image to install. Required."
+  echo -e "  --kubedns-version\t\tThe version of KubeDNS docker images to install. Required."
+  echo -e "  --pause-version\t\tThe version of pause docker image to install. Required."
+  echo -e "  --cni-plugins-version\t\tThe version of cni plugins to install. Required."
+  echo -e "  --sha1sum-cni-plugins\t\tThe sha1 checksum of the cni plugins release. Required."
+  echo -e "  --sha1sum-kubelet\t\tThe sha1 checksum of the Kubernetes binary. Required."
+  echo -e "  --sha1sum-kubectl\t\tThe sha1 checksum of the Kubernetes binary. Required."
+  echo
+  echo "Example:"
+  echo
+  echo "  install-k8s --version 3.3.0 --cni-plugins-version 0.7.0"
+}
+
+function log {
+  local readonly level="$1"
+  local readonly message="$2"
+  local readonly timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+  >&2 echo -e "${timestamp} [${level}] [$SCRIPT_NAME] ${message}"
+}
+
+function log_info {
+  local readonly message="$1"
+  log "INFO" "$message"
+}
+
+function log_warn {
+  local readonly message="$1"
+  log "WARN" "$message"
+}
+
+function log_error {
+  local readonly message="$1"
+  log "ERROR" "$message"
+}
+
+function assert_not_empty {
+  local readonly arg_name="$1"
+  local readonly arg_value="$2"
+
+  if [[ -z "$arg_value" ]]; then
+    log_error "The value for '$arg_name' cannot be empty"
+    print_usage
+    exit 1
+  fi
+}
+
+function install_dependencies {
+  log_info "Installing dependencies"
+  if [ -n "$(command -v yum)" ]; then
+      # curl to download or interact with apis,
+      # docker to run kubernetes infra # Not tested
+      sudo yum install -y curl docker
+  elif [ -n "$(command -v coreos-install)" ]; then
+       log_info "Nothing to do for coreos"
+  else
+      log_error "Could not find yum. Cannot install dependencies on this OS."
+      exit 1
+  fi
+}
+
+function create_k8s_install_paths {
+  local readonly path="$1"
+
+  log_info "Creating install dirs for Kubernetes at $path"
+  sudo mkdir -p "$path/bin"
+  sudo echo "export PATH=\$PATH:$path/bin"  | sudo tee /etc/profile.d/k8s_path.sh > /dev/null
+}
+
+function check_sha1sum {
+  local readonly path="$1"
+  local readonly sha1sum="$2"
+  local readonly computed_sha1sum=$(sha1sum "$path" | awk '{print $1}')
+
+  if [ "$sha1sum" != "$computed_sha1sum" ]; then
+    log_error "dl binary checksum error for path $path: $sha1sum != $computed_sha1sum"
+    exit 1
+  fi
+}
+
+function install_cni_plugins {
+  local readonly version="$1"
+  local readonly sha1sum="$2"
+  local readonly archive_name="cni-plugins-amd64-v${version}.tgz"
+  local readonly url="https://github.com/containernetworking/plugins/releases/download/v${version}/${archive_name}"
+  local readonly cni_dir="/opt/cni/bin"
+  local readonly full_name="$cni_dir/$archive_name"
+
+  log_info "Installing cni plugins at version ${version}"
+  sudo mkdir -p $cni_dir
+  sudo curl -L -o $full_name "$url"
+  check_sha1sum "$full_name" "$sha1sum"
+  sudo tar xz -C $cni_dir -f $full_name
+  sudo rm "$full_name"
+}
+
+function install_binary {
+  local readonly bin_name="$1"
+  local readonly version="$2"
+  local readonly sha1sum="$3"
+  local readonly path="$4"
+
+  local readonly url="https://storage.googleapis.com/kubernetes-release/release/v${version}/bin/linux/amd64/${bin_name}"
+  local readonly download_path="$path/bin/${bin_name}"
+
+  log_info "Downloading ${bin_name} $version from $url to $download_path"
+  sudo curl -L -o "$download_path" "$url"
+  check_sha1sum "$download_path" "$sha1sum"
+  sudo chmod +x "$download_path"
+}
+
+function pull_needed_image(){
+    local readonly k8s_version="$1"
+    local readonly calico_node_version="$2"
+    local readonly calico_cni_version="$3"
+    local readonly flannel_version="$4"
+    local readonly kubedns_version="$5"
+    local readonly pause_version="$6"
+
+    # Control plane
+    docker pull "gcr.io/google_containers/kube-apiserver-amd64:v${k8s_version}"
+    docker pull "gcr.io/google_containers/kube-scheduler-amd64:v${k8s_version}"
+    docker pull "gcr.io/google_containers/kube-controller-manager-amd64:v${k8s_version}"
+    docker pull "gcr.io/google_containers/kube-proxy-amd64:v${k8s_version}"
+    # CNI
+    docker pull "quay.io/calico/node:v${calico_node_version}"
+    docker pull "quay.io/calico/cni:v${calico_cni_version}"
+    docker pull "quay.io/coreos/flannel:v${flannel_version}"
+    # Warning fixed version
+    docker pull "gcr.io/google_containers/pause-amd64:${pause_version}"
+    docker pull "gcr.io/google_containers/k8s-dns-sidecar-amd64:${kubedns_version}"
+    docker pull "gcr.io/google_containers/k8s-dns-kube-dns-amd64:${kubedns_version}"
+    docker pull "gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:${kubedns_version}"
+}
+
+function install {
+  local k8s_version=""
+  local calico_node_version=""
+  local calico_cni_version=""
+  local flannel_version=""
+  local kubedns_version=""
+  local pause_version=""
+
+  while [[ $# > 0 ]]; do
+    local key="$1"
+
+    case "$key" in
+      --k8s-version)
+        k8s_version="$2"
+        shift
+        ;;
+      --calico-node-version)
+        calico_node_version="$2"
+        shift
+        ;;
+      --calico-cni-version)
+        calico_cni_version="$2"
+        shift
+        ;;
+      --flannel-version)
+        flannel_version="$2"
+        shift
+        ;;
+      --kubedns-version)
+        kubedns_version="$2"
+        shift
+        ;;
+      --pause-version)
+        pause_version="$2"
+        shift
+        ;;
+      --cni-plugins-version)
+        cni_plugins_version="$2"
+        shift
+        ;;
+      --sha1sum-cni-plugins)
+        sha1sum_cni_plugins="$2"
+        shift
+        ;;
+      --sha1sum-kubectl)
+        sha1sum_kubectl="$2"
+        shift
+        ;;
+      --sha1sum-kubelet)
+        sha1sum_kubelet="$2"
+        shift
+        ;;
+      --sha1sum-kubeadm)
+        sha1sum_kubeadm="$2"
+        shift
+        ;;
+      --help)
+        print_usage
+        exit
+        ;;
+      *)
+        log_error "Unrecognized argument: $key"
+        print_usage
+        exit 1
+        ;;
+    esac
+
+    shift
+  done
+
+  assert_not_empty "--k8s-version" "$k8s_version"
+  assert_not_empty "--calico-node-version" "$calico_node_version"
+  assert_not_empty "--calico-cni-version" "$calico_cni_version"
+  assert_not_empty "--flannel-version" "$flannel_version"
+  assert_not_empty "--kubedns-version" "$kubedns_version"
+  assert_not_empty "--pause-version" "$pause_version"
+  assert_not_empty "--cni-plugins-version" "$cni_plugins_version"
+  assert_not_empty "--sha1sum-cni-plugins" "$sha1sum_cni_plugins"
+  assert_not_empty "--sha1sum-kubectl" "$sha1sum_kubectl"
+  assert_not_empty "--sha1sum-kubelet" "$sha1sum_kubelet"
+  assert_not_empty "--sha1sum-kubeadm" "$sha1sum_kubeadm"
+
+  log_info "Starting Kubernetes install"
+
+  install_dependencies
+  create_k8s_install_paths "$DEFAULT_INSTALL_PATH"
+  install_cni_plugins "$cni_plugins_version" "$sha1sum_cni_plugins"
+  install_binary kubectl "$k8s_version" "$sha1sum_kubectl" "$DEFAULT_INSTALL_PATH"
+  install_binary kubelet "$k8s_version" "$sha1sum_kubelet" "$DEFAULT_INSTALL_PATH"
+  install_binary kubeadm "$k8s_version" "$sha1sum_kubeadm" "$DEFAULT_INSTALL_PATH"
+  pull_needed_image "$k8s_version" "$calico_node_version" "$calico_cni_version" "$flannel_version" "$kubedns_version" "$pause_version"
+
+  log_info "Kubernetes install complete!"
+}
+
+install "$@"

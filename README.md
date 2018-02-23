@@ -1,0 +1,54 @@
+# Kubernetes OVH Public Cloud Module
+
+This repo contains a Module for how to deploy a [Kubernetes](https://kubernetes.io/) cluster on [OVH Public Cloud](https://ovhcloud.com/) using [Terraform](https://www.terraform.io/). Kubernetes is an open-source system for automating deployment, scaling, and management of containerized applications.
+
+# Usage
+
+```hcl
+module "k8s" {
+  source                    = "ovh/publiccloud-k8s/ovh"
+  region                    = "BHS3"
+  name                      = "myk8s"
+  count                     = 3
+  master_mode               = true
+  cfssl                     = true
+  etcd                      = true
+  image_name                = "CoreOS Stable K8S"
+  flavor_name               = "b2-7"
+  ignition_mode             = true
+  associate_public_ipv4     = true
+  associate_private_ipv4    = false
+}
+```
+
+## Examples
+
+This module has the following folder structure:
+
+* [root](.): This folder shows an example of Terraform code which deploys a [K8s](https://kubernetes.io/) cluster in [OVH Public Cloud](https://ovhcloud.com/).
+* [modules](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/modules): This folder contains the reusable code for this Module, broken down into one or more modules.
+* [examples](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/examples): This folder contains examples of how to use the modules.
+
+To deploy K8s servers using this Module:
+
+1. (Optional) Create a K8s Glance Image using a Packer template that references the [install-k8s module](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/modules/install-k8s).
+   Here is an [example Packer template](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/examples/k8s-glance-image#quick-start). 
+      
+1. Deploy that Image using the Terraform [k8s-cluster example](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/examples/k8s-cluster). If you prebuilt a k8s glance image with packer, you can comment the post provisionning modules arguments.
+
+## How do I contribute to this Module?
+
+Contributions are very welcome! Check out the [Contribution Guidelines](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/CONTRIBUTING.md) for instructions.
+
+## Authors
+
+Module managed by
+- [Yann Degat](https://github.com/yanndegat).
+- [Joris Bonnefoy](https://github.com/Devatoria).
+- [Loïc PORTE](https://github.com/bewiwi).
+- Nicolas_NATIVEL.
+- [Timothé GERMAIN](https://github.com/tgermain).
+
+## License
+
+The 3-Clause BSD License. See [LICENSE](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/LICENSE) for full details.
