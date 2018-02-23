@@ -26,7 +26,7 @@ ExecStart=/opt/k8s/bin/kubelet --address=127.0.0.1 \
   --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf \
   --pod-manifest-path=/etc/kubernetes/manifests --allow-privileged=true \
   --network-plugin=cni --cni-conf-dir=/etc/cni/net.d --cni-bin-dir=/opt/cni/bin \
-  --cluster-dns=172.31.0.10 --cluster-domain=cluster.local \
+  --cluster-dns=${cidrhost(var.service_cidr, 10)} --cluster-domain=${var.datacenter}.${var.domain} \
   --authorization-mode=Webhook --client-ca-file=/etc/kubernetes/pki/ca.crt \
   --rotate-certificates=true
 Restart=always
@@ -279,7 +279,7 @@ data:
   # Flannel network configuration. Mounted into the flannel container.
   net-conf.json: |
     {
-      "Network": "192.168.0.0/16",
+      "Network": "${var.pod_cidr}",
       "Backend": {
         "Type": "vxlan"
       }
