@@ -146,6 +146,8 @@ module "userdata" {
   cfssl_key_size      = "${var.cfssl_key_size}"
   cfssl_bind          = "${var.cfssl_bind}"
   cfssl_port          = "${var.cfssl_port}"
+
+  master_as_worker = "${var.master_as_worker}"
 }
 
 resource "openstack_compute_instance_v2" "multinet_k8s" {

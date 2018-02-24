@@ -59,6 +59,11 @@ variable "master_mode" {
   default     = false
 }
 
+variable "master_as_worker" {
+  description = "Determines if master are also worker"
+  default     = false
+}
+
 variable "ssh_authorized_keys" {
   type        = "list"
   description = "SSH public keys"

@@ -85,6 +85,7 @@ RemainAfterExit=true
 Restart=on-failure
 StartLimitInterval=0
 RestartSec=10
+Environment=MASTER_AS_WORKER=${var.master_as_worker}
 ExecStartPre=/usr/bin/systemctl is-active etcd.service
 ExecStart=/opt/k8s/k8s-init
 

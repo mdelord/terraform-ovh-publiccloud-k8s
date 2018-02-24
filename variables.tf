@@ -253,3 +253,8 @@ variable "etcd_initial_cluster" {
   description = "etcd initial cluster. Useful to join an existing cluster. Useful if `master_mode` is true."
   default     = ""
 }
+
+variable "master_as_worker" {
+  description = "Determines if master are also worker"
+  default     = false
+}
