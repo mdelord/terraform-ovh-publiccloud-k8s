@@ -42,4 +42,5 @@ module "k8s" {
   ssh_private_key           = "${file("${var.private_sshkey}")}"
   associate_public_ipv4     = true
   associate_private_ipv4    = false
+  master_as_worker          = true
 }
