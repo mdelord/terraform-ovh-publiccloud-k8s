@@ -73,4 +73,7 @@ Enjoy!
 
 This should give you an infra with :
 
-- 3 kubernetes host in a public network.
+* 3 kubernetes masters in a public network with:
+  * Canal (Flannel + Calico) CNI
+  * Untainted nodes (pods can run on masters)
+  * kube-proxy for services
