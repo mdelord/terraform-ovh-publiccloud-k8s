@@ -1,6 +1,5 @@
 dist: trusty
 sudo: false
-language: terraform
 env:
   global:
     - TERRAFORM_VERSION=0.11.3
@@ -11,11 +10,14 @@ env:
     - secure: nwCo2PswTQWDYJ5Rff90jCZSGuHjm9jseO06vJx8yRiZEhAra+VVS222cH+8fUBIT0ZJs3EHB4S5AgztdSgQ3/FFhMdJiGvI0Ft8xpJgt9lBWVL7ymGbQG3YZ99lPtvgkVs64NoR/ZMKMOmC+ymU2vrOaTMJa2+aIKapinaBLWzThr0vzXe7ZCweK+VXGPGU/7YBTwLhWDaU6plfl3xsYANCubk/PXRMzxDjQY0PnvPPrY6WobW53wgPuZYwc9YdIZZvrvtIQFoIHR5dc0STEeJLMxd8jpf5eqof+WsHkG7gF/0dkJL09VafADA0rVUUJ+wBu40AoM+fBzQJn3szhdVy94tFuiAijOsirA6v1qNqRFQHceBaCBcz/0LMlytRMokl2bFo5g4StrYG1mTSL/OI5tNnQbkNQ6+8NQqfJuL3CcLSe5soCkxiQfFBMqPVh9KQxKqOBNCZwzggqSoDvqhnefTLiRhjKIqCMo7xcJ3unXLNQ/FM02XiGwtTCB2CsflIFrLHtcWWg9KzHBJ7Vd7cbu+QtXBUPkGXY5XQuBEjI947ZxBPoku7TTOc27EWlUMlkQtLGmGEPqSq+k98jN9AU9ZRHKAw2xEq1EYQrI8ISbTOg+/WyR5f5EiXqkZOtt2chmsod/7lGC+VEcPmCdV2NkwoPnT/Cwqso1axAnE=
     - secure: fzaoZ5kJIJK6DNFCi4Vv0xLPsf1zBc+DgpdyEJrxo4koVy+/7W8nowqid8iDGFd0RIWrm7jDoKsOcJrjXGxkogIN7A+AP6EUopBY4EoQgkZ0ep4CPYcEGe8ll04z2NwNPOpv/sjry/emnp0WbmBpaeu/LIeciTY9KAb7UvdQqpdIKVEjNMZtHdN7+nocQZ8brOXxNTnERP0aN1Gp/GRw/GPNU3N/VWN9S7BafjTpJEQRTTm9LFkLINtAAIApUwDny2+PZzw/uBLrDiGi0pORe5SZBUqhOxxUo3UH2LSnCuA5KnUUdcIAI2mPFvHd93gd2rGgd/3FebtO4LwVcBSrlJyplf6S9/KCGx8x1FIB9XWs9Wr6qiC8BQTxv7F+Ojh2TSNaFXZZrqducMZGxdtd9Ce2JT2Ib7AIhdYMh1Wka2jyOpLVJrWGSMXtPXM0zkR6BGWCw7WVkK0fVXBYmUmBCHiBSKn1OOzERRqD8XC5MhQ0e28H7suc2pKL+d2FKmI82IBhGNKdwQQLI/feFBkZ2nDnkYqLQuSsg41lDfcy0T6PhN1QodRdthgjd1eB+oVg+YcQBakO3I+bUSl4LdnxSc8NtUhn8HdSAdutdkyVJK9cEtYSPFhdHSshkEBZaMy/H1S4e9tZrn+nLOCdAoDulNQwRy5iyrhbd2W1mASFmbc=
 before_install:
+# download and install terraform
 - curl -sLo terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 - unzip terraform.zip
 - mkdir -p ~/bin
 - mv terraform ~/bin
 - export PATH="~/bin:$PATH"
+#generate temp ssh keypair that will be used for tests
+- ssh-keygen -t rsa -N ''
 script:
 - test/runtests.sh
 branches:
