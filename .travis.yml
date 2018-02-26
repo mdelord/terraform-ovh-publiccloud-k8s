@@ -1,0 +1,28 @@
+dist: trusty
+sudo: false
+language: terraform
+
+env:
+  - TERRAFORM_VERSION=0.11.3
+
+# Fetch terraform 
+before_install:
+  - curl -sLo terraform.zip https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
+  - unzip terraform.zip
+  - mkdir -p ~/bin
+  - mv terraform ~/bin
+  - export PATH="~/bin:$PATH"
+
+script:
+- test/runtests.sh
+
+branches:
+  only:
+  - master
+
+notifications:
+  irc:
+    channels:
+    - irc.freenode.org#ovh-oss
+    skip_join: true
+    use_notice: true
