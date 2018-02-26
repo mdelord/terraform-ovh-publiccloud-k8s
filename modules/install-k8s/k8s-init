@@ -1,0 +1,25 @@
+#!/bin/bash -e
+
+# Do not run if init has already been done
+if [ -f /opt/kubeadm/init.done ]; then
+   echo "init already done." >&1
+   exit 0
+fi
+
+# Prepare etcdctl command
+export ETCDCTL_API=3
+ETCDCTL_COMMAND="/opt/etcd/bin/etcdctl --cacert /opt/etcd/certs/ca.pem --cert /opt/etcd/certs/cert.pem --key /opt/etcd/certs/cert-key.pem --endpoints https://localhost:2379 "
+
+# Acquire lock on kubeadm-init script
+$ETCDCTL_COMMAND lock k8s-lock /bin/bash /opt/kubeadm/kubeadm-init
+
+# Untaint node if needed
+if [ "$$MASTER_AS_WORKER" == 1 ]; then
+   /opt/k8s/bin/kubectl --kubeconfig=/etc/kubernetes/admin.conf taint nodes --all node-role.kubernetes.io/master-
+fi
+
+# Apply CNI manifests
+/opt/k8s/bin/kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /etc/kubernetes/cni/cni-rbac.yaml
+/opt/k8s/bin/kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /etc/kubernetes/cni/cni-manifest.yaml
+
+touch /opt/k8s/init.done

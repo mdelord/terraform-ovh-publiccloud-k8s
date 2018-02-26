@@ -114,8 +114,6 @@ data "ignition_config" "coreos" {
     # Added for k8s
     "${element(data.ignition_file.hostname.*.id, count.index)}",
     "${element(data.ignition_file.kubeconfig.*.id, count.index)}",
-    "${data.ignition_file.k8s-init.*.id}",
-    "${data.ignition_file.kubeadm-init.*.id}",
     "${data.ignition_file.cni-rbac.*.id}",
     "${data.ignition_file.cni-manifest.*.id}"
   ]
