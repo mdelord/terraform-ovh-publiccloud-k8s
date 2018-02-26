@@ -1,7 +1,7 @@
 #!/bin/bash
 
 REGIONS=${1:-$OS_REGION_NAME}
-DIRS=(public-cluster-cl)
+DIRS=(public-cluster-cl private-cluster-cl)
 
 EXIT=0
 for d in ${DIRS[@]}; do
