@@ -51,11 +51,20 @@ resource "openstack_networking_secgroup_rule_v2" "in_traffic_cfssl" {
 }
 
 # auth all ports ; TODO filter only kube ports
-resource "openstack_networking_secgroup_rule_v2" "in_traffic_k8s" {
+resource "openstack_networking_secgroup_rule_v2" "in_traffic_k8s_tcp" {
   count             = "${var.associate_public_ipv4 ? var.count : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
+  remote_ip_prefix  = "${format("%s/32", element(data.template_file.public_ipv4_addrs.*.rendered, count.index))}"
+  security_group_id = "${openstack_networking_secgroup_v2.pub.id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "in_traffic_k8s_udp" {
+  count             = "${var.associate_public_ipv4 ? var.count : 0}"
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "udp"
   remote_ip_prefix  = "${format("%s/32", element(data.template_file.public_ipv4_addrs.*.rendered, count.index))}"
   security_group_id = "${openstack_networking_secgroup_v2.pub.id}"
 }
