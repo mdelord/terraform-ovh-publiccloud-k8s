@@ -7,7 +7,7 @@ env:
 
 # Fetch terraform 
 before_install:
-  - curl -sLo terraform.zip https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
+  - curl -sLo terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
   - unzip terraform.zip
   - mkdir -p ~/bin
   - mv terraform ~/bin
