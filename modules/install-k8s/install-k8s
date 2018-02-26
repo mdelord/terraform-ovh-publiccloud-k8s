@@ -85,6 +85,12 @@ function create_k8s_install_paths {
   log_info "Creating install dirs for Kubernetes at $path"
   sudo mkdir -p "$path/bin"
   sudo echo "export PATH=\$PATH:$path/bin"  | sudo tee /etc/profile.d/k8s_path.sh > /dev/null
+  sudo cp $SCRIPT_DIR/k8s-init $path/k8s-init
+  sudo chmod +x $path/k8s-init
+  sudo mkdir -p /opt/kubeadm/
+  sudo cp $SCRIPT_DIR/kubeadm-init /opt/kubeadm/kubeadm-init
+  sudo chmod +x /opt/kubeadm/kubeadm-init
+
 }
 
 function check_sha1sum {
