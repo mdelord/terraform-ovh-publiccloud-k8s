@@ -36,6 +36,10 @@ To deploy K8s servers using this Module:
       
 1. Deploy that Image using the Terraform [k8s-cluster example](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/examples/k8s-cluster). If you prebuilt a k8s glance image with packer, you can comment the post provisionning modules arguments.
 
+## Flavors
+
+kube-dns will not work (OutOfCpu) if only one VCPU is present (see kubernetes/kubernetes#38806), so it is not recommanded to use sandbox instances `s1-2` and `s1-4`.
+
 ## How do I contribute to this Module?
 
 Contributions are very welcome! Check out the [Contribution Guidelines](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/CONTRIBUTING.md) for instructions.
