@@ -4,7 +4,8 @@ data "ignition_file" "hostname" {
   filesystem = "root"
   mode = 420
   content {
-    content = "${var.name}-${count.index}"
+    #DNS-1123 subdomain must consist of lower case alphanumeric characters, '-' or '.'
+    content = "${replace(lower(var.name), "/[^0-9a-z.-]/", "-")}-${count.index}"
   }
 }
 
@@ -61,7 +62,8 @@ networking:
   serviceSubnet: ${var.service_cidr}
   podSubnet: ${var.pod_cidr}
 kubernetesVersion: 1.9.2
-nodeName: ${var.name}-${count.index}
+#DNS-1123 subdomain must consist of lower case alphanumeric characters, '-' or '.'
+nodeName: ${replace(lower(var.name), "/[^0-9a-z.-]/", "-")}-${count.index}
 authorizationModes:
 - Node
 - RBAC
