@@ -1,4 +1,4 @@
-# Etcd Glance Image
+# K8s Glance Image
 
 This folder shows an example of how to use the [install-k8s](../../modules/install-k8s) module with [Packer](https://www.packer.io/) to create an [an Openstack Glance Image](https://docs.openstack.org/glance/latest/) that has Etcd installed on top of CensOS 7.
 
