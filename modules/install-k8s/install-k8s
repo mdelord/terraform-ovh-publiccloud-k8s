@@ -114,7 +114,7 @@ function install_cni_plugins {
 
   log_info "Installing cni plugins at version ${version}"
   sudo mkdir -p $cni_dir
-  sudo curl -L -o $full_name "$url"
+  sudo curl --silent --fail -L -o $full_name "$url"
   check_sha1sum "$full_name" "$sha1sum"
   sudo tar xz -C $cni_dir -f $full_name
   sudo rm "$full_name"
@@ -130,7 +130,7 @@ function install_binary {
   local readonly download_path="$path/bin/${bin_name}"
 
   log_info "Downloading ${bin_name} $version from $url to $download_path"
-  sudo curl -L -o "$download_path" "$url"
+  sudo curl --silent --fail -L -o "$download_path" "$url"
   check_sha1sum "$download_path" "$sha1sum"
   sudo chmod +x "$download_path"
 }
