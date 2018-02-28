@@ -30,7 +30,7 @@ Your kubernetes cluster is up.
 
 You can connect in one of the instances:
 
-    $ ssh -J core@${module.network.bastion_public_ip} core@${module.k8s.private_ipv4_addrs[0]}
+    ${indent(4, join( "\n",formatlist("$ ssh -J core@${module.network.bastion_public_ip} core@%s", module.k8s.public_ipv4_addrs)))}
 
 Check your etcd cluster:
 
