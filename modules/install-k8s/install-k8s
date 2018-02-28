@@ -143,20 +143,22 @@ function pull_needed_image(){
     local readonly kubedns_version="$5"
     local readonly pause_version="$6"
 
+    # docker pulls are silent to avoid log pollution in CI builds
+
     # Control plane
-    docker pull "gcr.io/google_containers/kube-apiserver-amd64:v${k8s_version}"
-    docker pull "gcr.io/google_containers/kube-scheduler-amd64:v${k8s_version}"
-    docker pull "gcr.io/google_containers/kube-controller-manager-amd64:v${k8s_version}"
-    docker pull "gcr.io/google_containers/kube-proxy-amd64:v${k8s_version}"
+    docker pull "gcr.io/google_containers/kube-apiserver-amd64:v${k8s_version}" >/dev/null 2>&1
+    docker pull "gcr.io/google_containers/kube-scheduler-amd64:v${k8s_version}"  >/dev/null 2>&1
+    docker pull "gcr.io/google_containers/kube-controller-manager-amd64:v${k8s_version}"  >/dev/null 2>&1
+    docker pull "gcr.io/google_containers/kube-proxy-amd64:v${k8s_version}" >/dev/null 2>&1
     # CNI
-    docker pull "quay.io/calico/node:v${calico_node_version}"
-    docker pull "quay.io/calico/cni:v${calico_cni_version}"
-    docker pull "quay.io/coreos/flannel:v${flannel_version}"
+    docker pull "quay.io/calico/node:v${calico_node_version}" >/dev/null 2>&1
+    docker pull "quay.io/calico/cni:v${calico_cni_version}" >/dev/null 2>&1
+    docker pull "quay.io/coreos/flannel:v${flannel_version}" >/dev/null 2>&1
     # Warning fixed version
-    docker pull "gcr.io/google_containers/pause-amd64:${pause_version}"
-    docker pull "gcr.io/google_containers/k8s-dns-sidecar-amd64:${kubedns_version}"
-    docker pull "gcr.io/google_containers/k8s-dns-kube-dns-amd64:${kubedns_version}"
-    docker pull "gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:${kubedns_version}"
+    docker pull "gcr.io/google_containers/pause-amd64:${pause_version}" >/dev/null 2>&1
+    docker pull "gcr.io/google_containers/k8s-dns-sidecar-amd64:${kubedns_version}" >/dev/null 2>&1
+    docker pull "gcr.io/google_containers/k8s-dns-kube-dns-amd64:${kubedns_version}" >/dev/null 2>&1
+    docker pull "gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:${kubedns_version}" >/dev/null 2>&1
 }
 
 function install {
