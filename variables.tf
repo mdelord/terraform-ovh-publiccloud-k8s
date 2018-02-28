@@ -35,8 +35,12 @@ variable "image_name" {
 }
 
 variable "flavor_name" {
-  description = "The flavor name that will be used for k8s nodes."
-  default     = "s1-4"
+  description = <<DESC
+The flavor name that will be used for k8s nodes.
+kube-dns may fail if only one VCPU is present (see kubernetes/kubernetes#38806).
+It is not recommanded to use sandbox instances `s1-2` and `s1-4`.
+DESC
+  default     = "s1-8"
 }
 
 variable "count" {

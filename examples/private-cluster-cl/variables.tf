@@ -14,7 +14,7 @@ variable "os_auth_url" {
 
 variable "os_flavor_name" {
   description = "Flavor to use"
-  default     = "s1-2"
+  default     = "s1-8"
 }
 
 variable "name" {
