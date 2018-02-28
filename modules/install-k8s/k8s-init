@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 # Do not run if init has already been done
-if [ -f /opt/kubeadm/init.done ]; then
+if [ -f /opt/k8s/init.done ]; then
    echo "init already done." >&1
    exit 0
 fi
