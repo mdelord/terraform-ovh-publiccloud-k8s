@@ -1,7 +1,7 @@
 dist: trusty
 sudo: false
 env:
-  matrix:
+  global:
   - TERRAFORM_VERSION=0.11.3
   - OS_AUTH_URL=https://auth.cloud.ovh.net/
   - OS_ENDPOINT_TYPE=publicURL
