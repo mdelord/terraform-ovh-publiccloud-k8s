@@ -22,6 +22,7 @@ before_install:
 #generate temp ssh keypair that will be used for tests
 - ssh-keygen -f /home/travis/.ssh/id_rsa -t rsa -N ''
 script:
+- export TF_VAR_name=TRAVIS_${TRAVIS_BUILD_NUMBER}
 - test/runtests.sh
 branches:
   only:
