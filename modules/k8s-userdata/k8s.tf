@@ -21,8 +21,11 @@ data "ignition_systemd_unit" "kubelet_service" {
 Description=kubelet: The Kubernetes Node Agent
 Documentation=http://kubernetes.io/docs/
 
+# The IP address for the Kubelet to serve on (set to 0.0.0.0 for all interfaces) (default 0.0.0.0)
+Environment=KUBELET_BIND_ADDR=0.0.0.0
+
 [Service]
-ExecStart=/opt/k8s/bin/kubelet --address=127.0.0.1 \
+ExecStart=/opt/k8s/bin/kubelet --address=$KUBELET_BIND_ADDR \
   --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf \
   --pod-manifest-path=/etc/kubernetes/manifests --allow-privileged=true \
   --network-plugin=cni --cni-conf-dir=/etc/cni/net.d --cni-bin-dir=/opt/cni/bin \
