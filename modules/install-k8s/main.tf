@@ -25,7 +25,7 @@ resource "null_resource" "post_install_k8s" {
 
   provisioner "remote-exec" {
     inline = <<EOF
-/bin/sh -x /tmp/install-k8s/install-k8s \
+/bin/sh /tmp/install-k8s/install-k8s \
   --k8s-version ${var.k8s_version} \
   --calico-node-version ${var.calico_node_version} \
   --calico-cni-version ${var.calico_cni_version} \
