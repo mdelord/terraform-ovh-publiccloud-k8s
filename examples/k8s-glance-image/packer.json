@@ -32,7 +32,7 @@
       "identity_endpoint": "{{user `identity_endpoint`}}",
       "region": "{{user `region`}}",
       "ssh_username": "{{user `ssh_username`}}",
-      "image_name": "packer-{{user `source_image_name`}}",
+      "image_name": "{{user `source_image_name`}} K8s",
       "source_image_name": "{{user `source_image_name`}}",
       "ssh_ip_version": "4",
       "flavor": "s1-2",
