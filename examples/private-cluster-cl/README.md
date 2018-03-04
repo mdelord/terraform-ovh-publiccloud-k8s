@@ -38,7 +38,7 @@ Please enter your OpenStack Password:
 $ ssh-keygen -f terraform_ssh_key -q -N ""
 ```
 
-If you generate a new keypair, put its path in `terraform.tfvars` undar variables `private_sshkey` and `public_sshkey`.
+If you generate a new keypair, put its path in `terraform.tfvars` under variable `public_sshkey`.
 
 ## Run it
 
