@@ -4,7 +4,7 @@ locals {
 
 module "cfssl" {
   source  = "ovh/publiccloud-cfssl/ovh//modules/cfssl-userdata"
-  version = ">= 0.1.2"
+  version = ">= 0.1.3"
 
   ignition_mode        = "${var.ignition_mode}"
   cidr                 = "${var.host_cidr}"
@@ -26,13 +26,12 @@ module "cfssl" {
 
 module "etcd" {
   source  = "ovh/publiccloud-etcd/ovh//modules/etcd-userdata"
-  version = ">= 0.1.0"
+  version = ">= 0.1.1"
   count                = "${var.count}"
   name                 = "${var.name}"
   ignition_mode        = "${var.ignition_mode}"
   domain               = "${var.domain}"
   datacenter           = "${var.datacenter}"
-  region               = "${var.region}"
   cidr                 = "${var.host_cidr}"
   cfssl                = "${var.cfssl}"
   cfssl_endpoint       = "${module.cfssl.endpoint}"
