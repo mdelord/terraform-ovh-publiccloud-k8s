@@ -39,7 +39,6 @@ module "k8s" {
   public_security_group_ids = ["${openstack_networking_secgroup_v2.sg.id}"]
   ssh_user                  = "core"
   ssh_authorized_keys       = ["${file("${var.public_sshkey}")}"]
-  ssh_private_key           = "${file("${var.private_sshkey}")}"
   associate_public_ipv4     = true
   associate_private_ipv4    = false
   master_as_worker          = true

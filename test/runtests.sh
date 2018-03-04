@@ -3,6 +3,10 @@
 REGIONS=${1:-$OS_REGION_NAME}
 DIRS=(public-cluster-cl private-cluster-cl)
 
+if [ ! -f "$SSH_AUTH_SOCK" ]; then
+    eval $(ssh-agent) && ssh-add ${TEST_SSH_PRIVATE_KEY:-$HOME/.ssh/id_rsa}
+fi
+
 EXIT=0
 for d in ${DIRS[@]}; do
     for r in $REGIONS; do

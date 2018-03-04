@@ -41,8 +41,6 @@ module "k8s" {
   ignition_mode           = true
   ssh_user                = "core"
   ssh_authorized_keys     = ["${file("${var.public_sshkey}")}"]
-  ssh_private_key         = "${file("${var.private_sshkey}")}"
-  ssh_bastion_private_key = "${file("${var.private_sshkey}")}"
   ssh_bastion_host        = "${module.network.bastion_public_ip}"
   ssh_bastion_user        = "core"
   associate_public_ipv4   = false
