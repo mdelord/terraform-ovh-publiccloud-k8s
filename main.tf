@@ -213,10 +213,8 @@ module "post_install_cfssl" {
   triggers                = ["${element(concat(openstack_compute_instance_v2.singlenet_k8s.*.id, openstack_compute_instance_v2.multinet_k8s.*.id), 0)}"]
   ipv4_addrs              = ["${element(concat(openstack_compute_instance_v2.singlenet_k8s.*.access_ip_v4, openstack_compute_instance_v2.multinet_k8s.*.access_ip_v4), 0)}"]
   ssh_user                = "${var.ssh_user}"
-  ssh_private_key         = "${var.ssh_private_key}"
   ssh_bastion_host        = "${var.ssh_bastion_host}"
   ssh_bastion_user        = "${var.ssh_bastion_user}"
-  ssh_bastion_private_key = "${var.ssh_bastion_private_key}"
 }
 
 module "post_install_etcd" {
