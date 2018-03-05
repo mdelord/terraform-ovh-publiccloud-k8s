@@ -14,8 +14,9 @@ ETCDCTL_COMMAND="/opt/etcd/bin/etcdctl --cacert /opt/etcd/certs/ca.pem --cert /o
 $ETCDCTL_COMMAND lock k8s-lock /bin/bash /opt/kubeadm/kubeadm-init
 
 # Untaint node if needed
-if [ "$$MASTER_AS_WORKER" == 1 ]; then
-   /opt/k8s/bin/kubectl --kubeconfig=/etc/kubernetes/admin.conf taint nodes --all node-role.kubernetes.io/master-
+if [ "$MASTER_AS_WORKER" -eq "1" ]; then
+  echo "untainting $(hostname) master node"
+  /opt/k8s/bin/kubectl --kubeconfig=/etc/kubernetes/admin.conf taint nodes $(hostname) node-role.kubernetes.io/master-
 fi
 
 # Apply CNI manifests
