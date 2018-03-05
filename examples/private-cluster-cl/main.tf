@@ -30,7 +30,7 @@ module "k8s" {
   name                    = "${var.name}"
   count                   = "${var.count}"
   master_mode             = true
-  master_as_worker        = true
+  worker_mode             = true
   host_cidr               = "${var.cidr}"
   cfssl                   = true
   etcd                    = true

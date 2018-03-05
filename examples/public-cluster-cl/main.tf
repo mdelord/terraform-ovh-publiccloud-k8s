@@ -25,21 +25,21 @@ resource "openstack_networking_secgroup_rule_v2" "in_traffic_ssh" {
 }
 
 module "k8s" {
-  source                    = "../.."
-  region                    = "${var.os_region_name}"
-  name                      = "${var.name}"
-  count                     = "${var.count}"
-  master_mode               = true
-  cfssl                     = true
-  etcd                      = true
-  post_install_modules      = true
-  image_name                = "CoreOS Stable"
-  flavor_name               = "${var.os_flavor_name}"
-  ignition_mode             = true
-  public_security_group_ids = ["${openstack_networking_secgroup_v2.sg.id}"]
-  ssh_user                  = "core"
-  ssh_authorized_keys       = ["${file("${var.public_sshkey}")}"]
-  associate_public_ipv4     = true
-  associate_private_ipv4    = false
-  master_as_worker          = true
+  source                 = "../.."
+  region                 = "${var.os_region_name}"
+  name                   = "${var.name}"
+  count                  = "${var.count}"
+  master_mode            = true
+  worker_mode            = true
+  cfssl                  = true
+  etcd                   = true
+  post_install_modules   = true
+  image_name             = "CoreOS Stable"
+  flavor_name            = "${var.os_flavor_name}"
+  ignition_mode          = true
+  ssh_security_group_id  = "${openstack_networking_secgroup_v2.sg.id}"
+  ssh_user               = "core"
+  ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
+  associate_public_ipv4  = true
+  associate_private_ipv4 = false
 }

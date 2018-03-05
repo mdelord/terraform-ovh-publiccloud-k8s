@@ -22,58 +22,64 @@ data "openstack_networking_network_v2" "ext_net" {
   tenant_id = ""
 }
 
+locals {
+  # Compute the security group ID. If we do not create the securiy group (custom_security_group is set to true),
+  # we fallback on the givne security_group_id variable.
+  security_group_id = "${coalesce(join("", openstack_networking_secgroup_v2.pub.*.id), var.security_group_id)}"
+}
+
 resource "openstack_networking_secgroup_v2" "pub" {
-  count       = "${var.associate_public_ipv4 ? 1 : 0}"
+  count       = "${var.associate_public_ipv4 && !var.custom_security_group ? 1 : 0}"
   name        = "${var.name}_pub_sg"
-  description = "${var.name} security group for public ingress traffic on etcd hosts"
+  description = "${var.name} security group for public ingress traffic"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "in_traffic_etcd" {
-  count             = "${var.associate_public_ipv4 ? var.count : 0}"
+  count             = "${var.associate_public_ipv4 && var.etcd && !var.custom_security_group ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
-  remote_ip_prefix  = "${format("%s/32", element(data.template_file.public_ipv4_addrs.*.rendered, count.index))}"
   port_range_min    = "2379"
   port_range_max    = "2380"
-  security_group_id = "${openstack_networking_secgroup_v2.pub.id}"
+  remote_group_id   = "${local.security_group_id}"
+  security_group_id = "${local.security_group_id}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "in_traffic_cfssl" {
-  count             = "${var.associate_public_ipv4 && var.cfssl && var.cfssl_endpoint == "" ? var.count : 0}"
+  count             = "${var.associate_public_ipv4 && var.cfssl && !var.custom_security_group ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
-  remote_ip_prefix  = "${format("%s/32", element(data.template_file.public_ipv4_addrs.*.rendered, count.index))}"
   port_range_min    = "${var.cfssl_port}"
   port_range_max    = "${var.cfssl_port}"
-  security_group_id = "${openstack_networking_secgroup_v2.pub.id}"
+  remote_group_id   = "${local.security_group_id}"
+  security_group_id = "${local.security_group_id}"
 }
 
 # auth all ports ; TODO filter only kube ports
 resource "openstack_networking_secgroup_rule_v2" "in_traffic_k8s_tcp" {
-  count             = "${var.associate_public_ipv4 ? var.count : 0}"
+  count             = "${var.associate_public_ipv4 && !var.custom_security_group ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
-  remote_ip_prefix  = "${format("%s/32", element(data.template_file.public_ipv4_addrs.*.rendered, count.index))}"
-  security_group_id = "${openstack_networking_secgroup_v2.pub.id}"
+  remote_group_id   = "${local.security_group_id}"
+  security_group_id = "${local.security_group_id}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "in_traffic_k8s_udp" {
-  count             = "${var.associate_public_ipv4 ? var.count : 0}"
+  count             = "${var.associate_public_ipv4 && !var.custom_security_group ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "udp"
-  remote_ip_prefix  = "${format("%s/32", element(data.template_file.public_ipv4_addrs.*.rendered, count.index))}"
-  security_group_id = "${openstack_networking_secgroup_v2.pub.id}"
+  remote_group_id   = "${local.security_group_id}"
+  security_group_id = "${local.security_group_id}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "egress-ipv4" {
-  count             = "${var.associate_public_ipv4 ? 1 : 0}"
+  count             = "${var.associate_public_ipv4 && !var.custom_security_group ? 1 : 0}"
   direction         = "egress"
   ethertype         = "IPv4"
-  security_group_id = "${openstack_networking_secgroup_v2.pub.id}"
+  security_group_id = "${local.security_group_id}"
   remote_ip_prefix  = "0.0.0.0/0"
 }
 
@@ -85,7 +91,7 @@ resource "openstack_networking_port_v2" "public_port_k8s" {
   admin_state_up = "true"
 
   security_group_ids = [
-    "${compact(concat(openstack_networking_secgroup_v2.pub.*.id, var.public_security_group_ids))}",
+    "${compact(list(join("", openstack_networking_secgroup_v2.pub.*.id), var.security_group_id, var.ssh_security_group_id))}"
   ]
 }
 
@@ -145,6 +151,7 @@ module "userdata" {
   cfssl_endpoint       = "${var.cfssl_endpoint}"
   etcd                 = "${var.etcd}"
   etcd_initial_cluster = "${var.etcd_initial_cluster}"
+  etcd_endpoints       = "${var.etcd_endpoints}"
 
   # if private ipv4 addrs are set, prefer them over public addrs;
   # they will notably be used to set etcd_initial_cluster attr.
@@ -155,8 +162,9 @@ module "userdata" {
   cfssl_key_size      = "${var.cfssl_key_size}"
   cfssl_bind          = "${var.cfssl_bind}"
   cfssl_port          = "${var.cfssl_port}"
+  api_endpoint        = "${var.api_endpoint}"
 
-  master_as_worker = "${var.master_as_worker}"
+  worker_mode = "${var.worker_mode}"
 }
 
 resource "openstack_compute_instance_v2" "multinet_k8s" {
@@ -209,7 +217,7 @@ module "post_install_cfssl" {
   source  = "ovh/publiccloud-cfssl/ovh//modules/install-cfssl"
   version = ">= 0.1.3"
 
-  count                   = "${var.post_install_modules && var.cfssl && var.cfssl_endpoint == "" && var.count >= 1 ? 1 : 0}"
+  count                   = "${var.post_install_modules && var.cfssl && var.count >= 1 ? 1 : 0}"
   triggers                = ["${element(concat(openstack_compute_instance_v2.singlenet_k8s.*.id, openstack_compute_instance_v2.multinet_k8s.*.id), 0)}"]
   ipv4_addrs              = ["${element(concat(openstack_compute_instance_v2.singlenet_k8s.*.access_ip_v4, openstack_compute_instance_v2.multinet_k8s.*.access_ip_v4), 0)}"]
   ssh_user                = "${var.ssh_user}"

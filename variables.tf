@@ -78,10 +78,14 @@ DESC
   default = [""]
 }
 
-variable "public_security_group_ids" {
-  type        = "list"
-  description = "An optional list of additional security groups to attach to public ports"
-  default     = []
+variable "custom_security_group" {
+  description = "If set to true, use the given security_group_id instead of creating a new one. Please note that security group rules will not be added if set to true."
+  default     = false
+}
+
+variable "security_group_id" {
+  description = "If custom_security_group is set to true, the security group to use to attach."
+  default     = ""
 }
 
 variable "cacert" {
@@ -136,6 +140,11 @@ variable "ssh_bastion_user" {
   default     = ""
 }
 
+variable "ssh_security_group_id" {
+  description = "The ssh security group to integrate to the neutron port"
+  default     = ""
+}
+
 variable "ignition_mode" {
   description = "Set to true if os family supports ignition, such as CoreOS/Container Linux distribution"
   default     = true
@@ -152,7 +161,7 @@ variable "associate_private_ipv4" {
 }
 
 variable "master_mode" {
-  description = "Determines if nodes are k8s master nodes or simple workers"
+  description = "Determines if the node is a master"
   default     = false
 }
 
@@ -248,7 +257,17 @@ variable "etcd_initial_cluster" {
   default     = ""
 }
 
-variable "master_as_worker" {
-  description = "Determines if master are also worker"
+variable "etcd_endpoints" {
+  description = "etcd endpoints to call to query the etcd cluster"
+  default     = "https://localhost:2379"
+}
+
+variable "worker_mode" {
+  description = "Determines if the node is a worker"
   default     = false
+}
+
+variable "api_endpoint" {
+  description = "Kubernetes API endpoint (single IP or hostname)"
+  default     = "127.0.0.1"
 }

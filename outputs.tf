@@ -17,7 +17,7 @@ sudo /opt/k8s/bin/kubectl \
 CMD
 }
 
-output "public_security_group_id" {
+output "security_group_id" {
   value = "${join("", openstack_networking_secgroup_v2.pub.*.id)}"
 }
 
