@@ -9,7 +9,7 @@ data "http" "myip" {
   url = "https://api.ipify.org/"
 }
 
-resource "openstack_networking_secgroup_v2" "sg" {
+resource "openstack_networking_secgroup_v2" "ssh_sg" {
   name        = "${var.name}_ssh_sg"
   description = "${var.name} security group for k8s provisionning"
 }
@@ -21,7 +21,22 @@ resource "openstack_networking_secgroup_rule_v2" "in_traffic_ssh" {
   remote_ip_prefix  = "${data.http.myip.body}/32"
   port_range_min    = 22
   port_range_max    = 22
-  security_group_id = "${openstack_networking_secgroup_v2.sg.id}"
+  security_group_id = "${openstack_networking_secgroup_v2.ssh_sg.id}"
+}
+
+resource "openstack_networking_secgroup_v2" "k8s_sg" {
+  name        = "${var.name}_k8s_sg"
+  description = "${var.name} security group for k8s provisionning"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "in_traffic_k8s_sg" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  remote_ip_prefix  = "${data.http.myip.body}/32"
+  port_range_min    = 6443
+  port_range_max    = 6443
+  security_group_id = "${openstack_networking_secgroup_v2.k8s_sg.id}"
 }
 
 module "k8s" {
@@ -36,7 +51,7 @@ module "k8s" {
   image_name                = "CoreOS Stable"
   flavor_name               = "${var.os_flavor_name}"
   ignition_mode             = true
-  public_security_group_ids = ["${openstack_networking_secgroup_v2.sg.id}"]
+  public_security_group_ids = ["${openstack_networking_secgroup_v2.k8s_sg.id}", "${openstack_networking_secgroup_v2.ssh_sg.id}"]
   ssh_user                  = "core"
   ssh_authorized_keys       = ["${file("${var.public_sshkey}")}"]
   associate_public_ipv4     = true
