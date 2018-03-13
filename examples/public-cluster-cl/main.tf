@@ -11,7 +11,7 @@ data "http" "myip" {
 
 resource "openstack_networking_secgroup_v2" "ssh_sg" {
   name        = "${var.name}_ssh_sg"
-  description = "${var.name} security group for k8s provisionning"
+  description = "${var.name} security group to enable ssh on k8s node"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "in_traffic_ssh" {
@@ -26,7 +26,7 @@ resource "openstack_networking_secgroup_rule_v2" "in_traffic_ssh" {
 
 resource "openstack_networking_secgroup_v2" "k8s_sg" {
   name        = "${var.name}_k8s_sg"
-  description = "${var.name} security group for k8s provisionning"
+  description = "${var.name} security group to enable use of kubectl into k8s node"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "in_traffic_k8s_sg" {
