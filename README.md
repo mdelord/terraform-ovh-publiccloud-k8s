@@ -32,9 +32,8 @@ This module has the following folder structure:
 To deploy K8s servers using this Module:
 
 1. (Optional) Create a K8s Glance Image using a Packer template that references the [install-k8s module](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/modules/install-k8s).
-   Here is an [example Packer template](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/examples/k8s-glance-image#quick-start). 
-      
-1. Deploy that Image using the Terraform [k8s-cluster example](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/examples/k8s-cluster). If you prebuilt a k8s glance image with packer, you can comment the post provisionning modules arguments.
+   Here is an [example Packer template](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/examples/k8s-glance-image#quick-start).
+1. Deploy that Image using one of the Terraform cluster example: [private cluster](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/examples/private-cluster-cl) or [public cluster](https://github.com/ovh/terraform-ovh-publiccloud-k8s/tree/master/examples/public-cluster-cl). If you prebuilt a k8s glance image with packer, you can comment the post provisionning modules arguments.
 
 ## Flavors
 
