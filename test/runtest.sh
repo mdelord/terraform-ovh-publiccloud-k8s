@@ -1,11 +1,13 @@
 #!/bin/bash -x
 
-DIR=${1:-$(dirname $0)/../examples/public-server}
+DIR=${1:-$(dirname $0)/../examples/public-cluster-cl}
 REGION=${2:-$OS_REGION_NAME}
 DESTROY=${3:-1}
 CLEAN=${4:-1}
 PROJECT=${OS_TENANT_ID}
 VRACK=${OVH_VRACK_ID}
+
+OUTPUT_TEST="tf_test"
 
 test_tf(){
     # timeout is not 60 seconds but 60 loops, each taking at least 1 sec
@@ -14,7 +16,7 @@ test_tf(){
     local res=1
 
     while [ "$res" -ne 0 ] && [ "$inc" -lt "$timeout" ]; do
-        (cd "${DIR}" && terraform output tf_test | sh)
+        (cd "${DIR}" && terraform output ${OUTPUT_TEST} | sh)
         res=$?
         sleep 1
         ((inc++))

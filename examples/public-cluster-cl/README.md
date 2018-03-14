@@ -4,44 +4,44 @@
 - [Simple k8s cluster](#simple-k8s-cluster)
     - [Configuration](#configuration)
     - [Run it](#run-it)
+    - [Get started](#get-started)
     
 ## Install terraform
 
-You can information on how to install terraform [here](https://www.terraform.io/intro/getting-started/install.html)
+You can information on how to install terraform [here](https://www.terraform.io/intro/getting-started/install.html).
 
 ## Configuration
-1. Copy variable file
 
-There is an example of var file `terraform.tfvars.sample`.
+1. Copy variable file, then edit it if needed.
+   This allow terraform to autoload those variables
 
-Copy it under the name `terraform.tfvars` (this allow terraform to autoload those variables)
+   ```bash
+   cp terraform.tfvars.sample terraform.tfvars
+   ```
 
-2. Create a public cloud project on OVH
+2. Create a public cloud project on OVH following the [official documentation](https://docs.ovh.com/gb/en/public-cloud/getting_started_with_public_cloud_logging_in_and_creating_a_project/).
 
-Follow the [official documentation](https://docs.ovh.com/gb/en/public-cloud/getting_started_with_public_cloud_logging_in_and_creating_a_project/).
+   Create an Openstack user ([official documentation](https://docs.ovh.com/gb/en/public-cloud/configure_user_access_to_horizon/)).
+   Then download the Openstack configuration file. You can get it from [OVH Manager](https://www.ovh.com/manager/cloud/), or from [Horizon interface](https://horizon.cloud.ovh.net/project/api_access/openrc/).
 
-You will need to create an Openstack user. You can do so in the "Openstack" part of you cloud project. 
+   Source the configuration file:
 
-You add to source your openstack configuration file. You can generate this file for you user in OVH manager (Use the user contextual menu). 
+   ```bash
+   $ source openrc.sh
+   Please enter your OpenStack Password:
 
-```bash
-# Source openrc.sh
-$ source openrc.sh
-Please enter your OpenStack Password: 
+   ```
 
-```
+3. Create or reuse ssh key pair. Careful this keypair should not be using passphrase!
 
-3. Create or reuse ssh key pair. Carreful this keypair should not be using passphrase !
+   ```bash
+   # Generate a new keypair without passphrase
+   $ ssh-keygen -f terraform_ssh_key -q -N ""
+   # Add it to the ssh-agent
+   $ ssh-add terraform_ssh_key
+   ```
 
-```bash
-# Generate a new keypair without passphrase
-$ ssh-keygen -f terraform_ssh_key -q -N ""
-```
-
-If you generate a new keypair, put its path in `terraform.tfvars` under variable `public_sshkey` and add it to your ssh-agent:
-```bash
-$ ssh-add terraform_ssh_key
-```
+   If you generated a new keypair, set `public_sshkey` with its path in `terraform.tfvars`.
 
 ## Run it
 
@@ -55,28 +55,39 @@ Terraform has been successfully initialized!
 
 $ terraform apply
 [...]
-helper = Your kubernetes cluster is up.
-
-You can connect in one of the instances:
-
-    $ ssh core@<ip>
-
-Check your etcd cluster:
-
-    $ /opt/etcd/bin/etcdctl --ca-file /opt/etcd/certs/ca.pem --cert-file /opt/etcd/certs/cert.pem --key-file /opt/etcd/certs/cert-key.pem --endpoints https://54.36.112.50:2379 member list
-
-Run a pod:
-
-    $ ...
-
-Enjoy!
-
 
 ```
 
-This should give you an infra with :
+This should give you an infra with:
 
 * 3 kubernetes masters in a public network with:
   * Canal (Flannel + Calico) CNI
   * Untainted nodes (pods can run on masters)
   * kube-proxy for services
+
+## Get Started
+
+Get help with following command:
+
+```bash
+$ terraform output helper
+Your kubernetes cluster is up.
+
+Check if cluster is running:
+
+    $ [...]
+
+Configure the client:
+
+    $ [...]
+
+To connect to one of the instances:
+
+    $ [...]
+
+Run a pod:
+
+    $ [...]
+
+Enjoy!
+```
