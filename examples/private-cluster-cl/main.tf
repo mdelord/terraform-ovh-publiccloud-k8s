@@ -25,24 +25,24 @@ module "network" {
 }
 
 module "k8s" {
-  source                  = "../.."
-  region                  = "${var.os_region_name}"
-  name                    = "${var.name}"
-  count                   = "${var.count}"
-  master_mode             = true
-  worker_mode             = true
-  host_cidr               = "${var.cidr}"
-  cfssl                   = true
-  etcd                    = true
-  post_install_modules    = true
-  image_name              = "CoreOS Stable"
-  subnet_ids              = ["${module.network.private_subnets[0]}"]
-  flavor_name             = "${var.os_flavor_name}"
-  ignition_mode           = true
-  ssh_user                = "core"
-  ssh_authorized_keys     = ["${file("${var.public_sshkey}")}"]
-  ssh_bastion_host        = "${module.network.bastion_public_ip}"
-  ssh_bastion_user        = "core"
-  associate_public_ipv4   = false
-  associate_private_ipv4  = true
+  source                 = "../.."
+  region                 = "${var.os_region_name}"
+  name                   = "${var.name}"
+  count                  = "${var.count}"
+  master_mode            = true
+  worker_mode            = true
+  host_cidr              = "${var.cidr}"
+  cfssl                  = true
+  etcd                   = true
+  post_install_modules   = true
+  image_name             = "CoreOS Stable"
+  subnet_ids             = ["${module.network.private_subnets[0]}"]
+  flavor_name            = "${var.os_flavor_name}"
+  ignition_mode          = true
+  ssh_user               = "core"
+  ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
+  ssh_bastion_host       = "${module.network.bastion_public_ip}"
+  ssh_bastion_user       = "core"
+  associate_public_ipv4  = false
+  associate_private_ipv4 = true
 }

@@ -78,9 +78,9 @@ DESC
   default = [""]
 }
 
-variable "public_security_group_ids" {
+variable "security_group_ids" {
   type        = "list"
-  description = "An optional list of additional security groups to attach to public ports"
+  description = "The list of security groups ids to attach to nodes. You should make use of the module k8s-secgroups. This is required if associate_public_ipv4 is set to `true`"
   default     = []
 }
 
