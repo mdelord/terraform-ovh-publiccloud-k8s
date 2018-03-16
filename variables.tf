@@ -262,8 +262,3 @@ variable "api_endpoint" {
   description = "Kubernetes API endpoint (single IP or hostname)"
   default     = "127.0.0.1"
 }
-
-variable "allow_global_egress" {
-  description = "allow egress traffic to 0.0.0.0/0"
-  default     = true
-}
