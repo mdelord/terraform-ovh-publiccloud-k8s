@@ -22,64 +22,33 @@ data "openstack_networking_network_v2" "ext_net" {
   tenant_id = ""
 }
 
-locals {
-  # Compute the security group ID. If we do not create the securiy group (custom_security_group is set to true),
-  # we fallback on the givne security_group_id variable.
-  security_group_id = "${coalesce(join("", openstack_networking_secgroup_v2.pub.*.id), var.security_group_id)}"
+# It has to be known that security group rules are effective
+# only on the Ext-Net network. Security groups on Private vrack networks
+# are uneffective
+resource "openstack_networking_secgroup_v2" "sg" {
+  name        = "${var.name}"
+  description = "${var.name} security group"
 }
 
-resource "openstack_networking_secgroup_v2" "pub" {
-  count       = "${var.associate_public_ipv4 && !var.custom_security_group ? 1 : 0}"
-  name        = "${var.name}_pub_sg"
-  description = "${var.name} security group for public ingress traffic"
-}
-
-resource "openstack_networking_secgroup_rule_v2" "in_traffic_etcd" {
-  count             = "${var.associate_public_ipv4 && var.etcd && !var.custom_security_group ? 1 : 0}"
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  protocol          = "tcp"
-  port_range_min    = "2379"
-  port_range_max    = "2380"
-  remote_group_id   = "${local.security_group_id}"
-  security_group_id = "${local.security_group_id}"
-}
-
-resource "openstack_networking_secgroup_rule_v2" "in_traffic_cfssl" {
-  count             = "${var.associate_public_ipv4 && var.cfssl && !var.custom_security_group ? 1 : 0}"
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  protocol          = "tcp"
-  port_range_min    = "${var.cfssl_port}"
-  port_range_max    = "${var.cfssl_port}"
-  remote_group_id   = "${local.security_group_id}"
-  security_group_id = "${local.security_group_id}"
-}
-
-# auth all ports ; TODO filter only kube ports
-resource "openstack_networking_secgroup_rule_v2" "in_traffic_k8s_tcp" {
-  count             = "${var.associate_public_ipv4 && !var.custom_security_group ? 1 : 0}"
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  protocol          = "tcp"
-  remote_group_id   = "${local.security_group_id}"
-  security_group_id = "${local.security_group_id}"
-}
-
-resource "openstack_networking_secgroup_rule_v2" "in_traffic_k8s_udp" {
-  count             = "${var.associate_public_ipv4 && !var.custom_security_group ? 1 : 0}"
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  protocol          = "udp"
-  remote_group_id   = "${local.security_group_id}"
-  security_group_id = "${local.security_group_id}"
+module "ingress_traffic" {
+  source = "./modules/k8s-ingress"
+  security_group_id     = "${openstack_networking_secgroup_v2.sg.id}"
+  remote_group_id       = "${openstack_networking_secgroup_v2.sg.id}"
+  etcd_peer             = "${var.etcd && var.master_mode}"
+  etcd_client           = "${var.etcd}"
+  cfssl                 = "${var.cfssl}"
+  cfssl_port            = "${var.cfssl_port}"
+  master_to_master      = "${var.master_mode}"
+  master_to_worker      = "${var.master_mode && var.worker_mode}"
+  worker_to_master      = "${var.master_mode && var.worker_mode}"
+  worker_to_worker      = "${var.worker_mode}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "egress-ipv4" {
-  count             = "${var.associate_public_ipv4 && !var.custom_security_group ? 1 : 0}"
+  count             = "${var.associate_public_ipv4 && var.allow_global_egress ? 1 : 0}"
   direction         = "egress"
   ethertype         = "IPv4"
-  security_group_id = "${local.security_group_id}"
+  security_group_id = "${openstack_networking_secgroup_v2.sg.id}"
   remote_ip_prefix  = "0.0.0.0/0"
 }
 
@@ -91,7 +60,7 @@ resource "openstack_networking_port_v2" "public_port_k8s" {
   admin_state_up = "true"
 
   security_group_ids = [
-    "${compact(list(join("", openstack_networking_secgroup_v2.pub.*.id), var.security_group_id, var.ssh_security_group_id))}"
+    "${compact(concat(openstack_networking_secgroup_v2.sg.*.id, var.public_security_group_ids))}",
   ]
 }
 

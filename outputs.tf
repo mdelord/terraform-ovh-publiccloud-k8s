@@ -18,7 +18,7 @@ CMD
 }
 
 output "security_group_id" {
-  value = "${join("", openstack_networking_secgroup_v2.pub.*.id)}"
+  value = "${openstack_networking_secgroup_v2.sg.id}"
 }
 
 output "private_ipv4_addrs" {

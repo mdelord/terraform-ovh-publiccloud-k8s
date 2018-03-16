@@ -24,48 +24,73 @@ resource "openstack_networking_secgroup_rule_v2" "in_traffic_ssh" {
   security_group_id = "${openstack_networking_secgroup_v2.sg.id}"
 }
 
+resource "openstack_networking_secgroup_rule_v2" "k8s-api" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  remote_ip_prefix  = "${data.http.myip.body}/32"
+  port_range_min    = 6443
+  port_range_max    = 6443
+  security_group_id = "${openstack_networking_secgroup_v2.sg.id}"
+}
+
 module "k8s_masters" {
-  source                 = "../.."
-  region                 = "${var.os_region_name}"
-  name                   = "${var.name}_master"
-  count                  = "${var.masters_count}"
-  master_mode            = true
-  worker_mode            = false
-  cfssl                  = true
-  etcd                   = true
-  post_install_modules   = true
-  image_name             = "CoreOS Stable"
-  flavor_name            = "${var.os_flavor_name_masters}"
-  ignition_mode          = true
-  ssh_user               = "core"
-  ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
-  ssh_security_group_id  = "${openstack_networking_secgroup_v2.sg.id}"
-  associate_public_ipv4  = true
-  associate_private_ipv4 = false
+  source                    = "../.."
+  region                    = "${var.os_region_name}"
+  name                      = "${var.name}_master"
+  count                     = "${var.masters_count}"
+  master_mode               = true
+  worker_mode               = false
+  cfssl                     = true
+  etcd                      = true
+  post_install_modules      = true
+  image_name                = "CoreOS Stable"
+  flavor_name               = "${var.os_flavor_name_masters}"
+  ignition_mode             = true
+  ssh_user                  = "core"
+  ssh_authorized_keys       = ["${file("${var.public_sshkey}")}"]
+  public_security_group_ids = ["${openstack_networking_secgroup_v2.sg.id}"]
+  associate_public_ipv4     = true
+  associate_private_ipv4    = false
 }
 
 module "k8s_workers" {
-  source                 = "../.."
-  region                 = "${var.os_region_name}"
-  name                   = "${var.name}_worker"
-  count                  = "${var.workers_count}"
-  master_mode            = false
-  worker_mode            = true
-  cfssl                  = false
-  cfssl_endpoint         = "${module.k8s_masters.cfssl_endpoint}"
-  etcd                   = true
-  etcd_endpoints         = "${join(",", formatlist("https://%s:2379", module.k8s_masters.public_ipv4_addrs))}"
-  post_install_modules   = true
-  image_name             = "CoreOS Stable"
-  flavor_name            = "${var.os_flavor_name_workers}"
-  ignition_mode          = true
-  ssh_user               = "core"
-  ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
-  ssh_security_group_id  = "${openstack_networking_secgroup_v2.sg.id}"
-  associate_public_ipv4  = true
-  associate_private_ipv4 = false
-  custom_security_group  = true
-  security_group_id      = "${module.k8s_masters.security_group_id}"
+  source                    = "../.."
+  region                    = "${var.os_region_name}"
+  name                      = "${var.name}_worker"
+  count                     = "${var.workers_count}"
+  master_mode               = false
+  worker_mode               = true
+  cfssl                     = false
+  cfssl_endpoint            = "${module.k8s_masters.cfssl_endpoint}"
+  etcd                      = true
+  etcd_endpoints            = "${join(",", formatlist("https://%s:2379", module.k8s_masters.public_ipv4_addrs))}"
+  post_install_modules      = true
+  image_name                = "CoreOS Stable"
+  flavor_name               = "${var.os_flavor_name_workers}"
+  ignition_mode             = true
+  ssh_user                  = "core"
+  ssh_authorized_keys       = ["${file("${var.public_sshkey}")}"]
+  public_security_group_ids = ["${openstack_networking_secgroup_v2.sg.id}"]
+  associate_public_ipv4     = true
+  associate_private_ipv4    = false
+
   # TODO: replace this by a DNS entry to round robin on masters IP
-  api_endpoint           = "${format("%s:6443", element(module.k8s_masters.public_ipv4_addrs, 1))}"
+  api_endpoint = "${format("%s:6443", element(module.k8s_masters.public_ipv4_addrs, 1))}"
+}
+
+module "k8s_ingress_workers_masters" {
+  source            = "../../modules/k8s-ingress"
+  security_group_id = "${module.k8s_workers.security_group_id}"
+  remote_group_id   = "${module.k8s_masters.security_group_id}"
+  master_to_worker  = true
+}
+
+module "k8s_ingress_masters_workers" {
+  source            = "../../modules/k8s-ingress"
+  security_group_id = "${module.k8s_masters.security_group_id}"
+  remote_group_id   = "${module.k8s_workers.security_group_id}"
+  etcd_client       = true
+  cfssl             = true
+  worker_to_master  = true
 }

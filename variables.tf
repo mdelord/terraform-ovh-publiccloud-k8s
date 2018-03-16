@@ -78,14 +78,10 @@ DESC
   default = [""]
 }
 
-variable "custom_security_group" {
-  description = "If set to true, use the given security_group_id instead of creating a new one. Please note that security group rules will not be added if set to true."
-  default     = false
-}
-
-variable "security_group_id" {
-  description = "If custom_security_group is set to true, the security group to use to attach."
-  default     = ""
+variable "public_security_group_ids" {
+  type        = "list"
+  description = "An optional list of additional security groups to attach to public ports"
+  default     = []
 }
 
 variable "cacert" {
@@ -137,11 +133,6 @@ variable "ssh_bastion_host" {
 
 variable "ssh_bastion_user" {
   description = "The ssh username of the bastion host used to post provision the k8s cluster. This may be required if `post_install_module` is set to `true`"
-  default     = ""
-}
-
-variable "ssh_security_group_id" {
-  description = "The ssh security group to integrate to the neutron port"
   default     = ""
 }
 
@@ -270,4 +261,9 @@ variable "worker_mode" {
 variable "api_endpoint" {
   description = "Kubernetes API endpoint (single IP or hostname)"
   default     = "127.0.0.1"
+}
+
+variable "allow_global_egress" {
+  description = "allow egress traffic to 0.0.0.0/0"
+  default     = true
 }
