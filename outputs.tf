@@ -56,3 +56,9 @@ output "k8s_get_config" {
 
   value = "sudo cat ${local.k8s_admin_config}"
 }
+
+output "api_endpoint" {
+  # TODO: replace this by a DNS entry to round robin on masters IP
+  description  = "This represents the public k8s api endpoint"
+  value        = "${var.api_endpoint != "" ? var.api_endpoint : (var.master_mode ? format("%s:6443", element(data.template_file.public_ipv4_addrs.*.rendered, 0)) : "")}"
+}

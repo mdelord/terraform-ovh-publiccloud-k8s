@@ -66,6 +66,7 @@ module "k8s_workers" {
   associate_private_ipv4 = false
   custom_security_group  = true
   security_group_id      = "${module.k8s_masters.security_group_id}"
+
   # TODO: replace this by a DNS entry to round robin on masters IP
-  api_endpoint           = "${format("%s:6443", element(module.k8s_masters.public_ipv4_addrs, 1))}"
+  api_endpoint           = "${module.k8s_masters.api_endpoint}"
 }
