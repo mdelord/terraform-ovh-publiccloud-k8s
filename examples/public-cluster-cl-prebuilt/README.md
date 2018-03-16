@@ -7,7 +7,7 @@
     
 ## Install terraform
 
-You can information on how to install terraform [here](https://www.terraform.io/intro/getting-started/install.html)
+You can read documentation on how to install terraform [here](https://www.terraform.io/intro/getting-started/install.html)
 
 ## Configuration
 1. Copy variable file
@@ -20,22 +20,21 @@ Copy it under the name `terraform.tfvars` (this allow terraform to autoload thos
 
 Follow the [official documentation](https://docs.ovh.com/gb/en/public-cloud/getting_started_with_public_cloud_logging_in_and_creating_a_project/).
 
-You will need to create an Openstack user. You can do so in the "Openstack" part of you cloud project. 
+Create an Openstack user using the "Openstack" part of your cloud project. 
 
-You add to source your openstack configuration file. You can generate this file for you user in OVH manager (Use the user contextual menu). 
+Source your openstack configuration file. Generate it for your user using the OVH manager (Use the user contextual menu). 
 
 ```bash
-# Source openrc.sh
 $ source openrc.sh
 Please enter your OpenStack Password: 
 
 ```
 
-3. Create or reuse ssh key pair. Carreful this keypair should not be using passphrase !
+3. Create or reuse a ssh key pair. Careful this keypair should not be using passphrase!
 
 ```bash
 # Generate a new keypair without passphrase
-$ ssh-keygen -f terraform_ssh_key -q -N ""
+$ ssh-keygen -f terraform_ssh_key -q -N "" -t rsa -b 4096
 ```
 
 If you generate a new keypair, put its path in `terraform.tfvars` under variable `public_sshkey` and add it to your ssh-agent:
@@ -61,7 +60,7 @@ $ terraform apply
 [...]
 helper = Your kubernetes cluster is up.
 
-You can connect in one of the instances:
+You can connect to one of the instances:
 
     $ ssh core@<ip>
 
@@ -74,11 +73,9 @@ Run a pod:
     $ ...
 
 Enjoy!
-
-
 ```
 
-This should give you an infra with :
+This should give you an infra with:
 
 * 3 kubernetes masters in a public network with:
   * Canal (Flannel + Calico) CNI
