@@ -1,28 +1,5 @@
 locals {
-  k8s_config_path = "~/.kube/config"
-
-  ssh_prefix = <<CMD
-ssh -o ProxyCommand='ssh -o StrictHostKeyChecking=no core@${module.network.bastion_public_ip} ncat %h %p' \
-    core@${module.k8s.private_ipv4_addrs[0]} -- \
-  CMD
-
-  test_ssh_prefix = <<CMD
-ssh -o UserKnownHostsFile=/dev/null \
-    -o StrictHostKeyChecking=no \
-    -o ProxyCommand='ssh -o StrictHostKeyChecking=no core@${module.network.bastion_public_ip} ncat %h %p' \
-    core@${module.k8s.private_ipv4_addrs[0]} -- \
-  CMD
-}
-
-output "tf_test" {
-  description = "Used by module tests"
-
-  value = <<CMD
-
-`# This output is only for test purpose!` \
-${replace("${local.test_ssh_prefix} sh -c \"'${module.k8s.etcd_status}'\"", "/\\s*\\\\\\s+/", " ")} \
-`# This output is only for test purpose!`
-CMD
+  ssh_proxy_command = "-o ProxyCommand='ssh core@${module.network.bastion_public_ip} ncat %h %p'"
 }
 
 output "helper" {
@@ -31,23 +8,23 @@ output "helper" {
   value = <<HELP
 Your kubernetes cluster is up.
 
-Check if cluster is running:
+Retrieve k8s configuration locally:
 
-    $ ${indent(6, local.ssh_prefix)} sh -c \"'${indent(6, module.k8s.etcd_status)}'\" && echo 'etcd cluster is running'
+    $ mkdir -p ~/.kube/${var.name}
+    $ ssh ${local.ssh_proxy_command} core@${module.k8s.private_ipv4_addrs[0]} sudo cat /etc/kubernetes/admin.conf > ~/.kube/${var.name}/config
 
-    $ ${indent(6, local.ssh_prefix)} sh -c \"'${indent(6, module.k8s.k8s_status)}'\" && echo 'k8s cluster is running'
+As your cluster is not exposed to the Internet, you'll have to be on the same network as your masters
+to have kubectl work (eg.: connect through a vpn, access from an edge node):
 
-Configure the client:
+    $ kubectl --kubeconfig ~/.kube/${var.name}/config get nodes
 
-    $ ${indent(6, local.ssh_prefix)} ${indent(6, module.k8s.k8s_get_config)} > ${local.k8s_config_path}
+Or you can ssh into one of your instances:
 
-To connect to one of the instances:
+    ${indent(4, join( "\n", formatlist("$ ssh %s core@%s", local.ssh_proxy_command, module.k8s.private_ipv4_addrs)))}
 
-    ${indent(4, join( "\n", formatlist("$ ssh -J core@${module.network.bastion_public_ip} core@%s", module.k8s.private_ipv4_addrs)))}
+And run commands from there:
 
-Run a pod:
-
-    $ ...
+    $ sudo /opt/k8s/bin/kubectl --kubeconfig /etc/kubernetes/admin.conf get nodes
 
 Enjoy!
 HELP

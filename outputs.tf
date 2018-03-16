@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 locals {
   k8s_admin_config = "/etc/kubernetes/admin.conf"
 
@@ -15,6 +16,10 @@ sudo /opt/k8s/bin/kubectl \
     --kubeconfig ${local.k8s_admin_config} \
     get nodes \
 CMD
+=======
+output "public_security_group_id" {
+  value = "${join("", openstack_networking_secgroup_v2.pub.*.id)}"
+>>>>>>> Rework tests and associated outputs
 }
 
 output "private_ipv4_addrs" {
@@ -38,24 +43,6 @@ output "etcd_initial_cluster" {
 output "etcd_endpoints" {
   description = "The etcd client endpoints that can be used to interact with the etcd cluster"
   value       = "${module.userdata.etcd_endpoints}"
-}
-
-output "etcd_status" {
-  description = "This output can be used to check if the etcd cluster is up & running"
-
-  value = "[ \\$(${local.etcd_test_command}    | wc -l) == ${var.count} ] && ${local.etcd_test_command}    | grep -q isLeader=true"
-}
-
-output "k8s_status" {
-  description = "This output can be used to check if the k8s cluster is up & running"
-
-  value = "[ \\$(${local.k8s_test_command}    | grep master | grep -iw ready | wc -l) == ${var.count} ]"
-}
-
-output "k8s_get_config" {
-  description = "This output can be used to get config file"
-
-  value = "sudo cat ${local.k8s_admin_config}"
 }
 
 output "api_endpoint" {
