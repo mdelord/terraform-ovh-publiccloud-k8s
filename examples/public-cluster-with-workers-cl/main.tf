@@ -9,19 +9,41 @@ data "http" "myip" {
   url = "https://api.ipify.org/"
 }
 
-resource "openstack_networking_secgroup_v2" "sg" {
-  name        = "${var.name}_ssh_sg"
-  description = "${var.name} security group for k8s provisionning"
+module "k8s_secgroups" {
+  source = "../../modules/k8s-secgroups"
+  name   = "${var.name}"
+  etcd   = true
+  cfssl  = true
 }
 
-resource "openstack_networking_secgroup_rule_v2" "in_traffic_ssh" {
+resource "openstack_networking_secgroup_rule_v2" "in_traffic_ssh_master" {
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
   remote_ip_prefix  = "${data.http.myip.body}/32"
   port_range_min    = 22
   port_range_max    = 22
-  security_group_id = "${openstack_networking_secgroup_v2.sg.id}"
+  security_group_id = "${module.k8s_secgroups.master_group_id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "in_traffic_ssh_worker" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  remote_ip_prefix  = "${data.http.myip.body}/32"
+  port_range_min    = 22
+  port_range_max    = 22
+  security_group_id = "${module.k8s_secgroups.worker_group_id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "k8s-api" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  remote_ip_prefix  = "${data.http.myip.body}/32"
+  port_range_min    = 6443
+  port_range_max    = 6443
+  security_group_id = "${module.k8s_secgroups.master_group_id}"
 }
 
 module "k8s_masters" {
@@ -39,7 +61,7 @@ module "k8s_masters" {
   ignition_mode          = true
   ssh_user               = "core"
   ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
-  ssh_security_group_id  = "${openstack_networking_secgroup_v2.sg.id}"
+  security_group_ids     = ["${module.k8s_secgroups.master_group_id}"]
   associate_public_ipv4  = true
   associate_private_ipv4 = false
 }
@@ -61,12 +83,10 @@ module "k8s_workers" {
   ignition_mode          = true
   ssh_user               = "core"
   ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
-  ssh_security_group_id  = "${openstack_networking_secgroup_v2.sg.id}"
+  security_group_ids     = ["${module.k8s_secgroups.worker_group_id}"]
   associate_public_ipv4  = true
   associate_private_ipv4 = false
   custom_security_group  = true
   security_group_id      = "${module.k8s_masters.security_group_id}"
-
-  # TODO: replace this by a DNS entry to round robin on masters IP
   api_endpoint           = "${module.k8s_masters.api_endpoint}"
 }

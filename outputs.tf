@@ -17,10 +17,6 @@ sudo /opt/k8s/bin/kubectl \
 CMD
 }
 
-output "security_group_id" {
-  value = "${join("", openstack_networking_secgroup_v2.pub.*.id)}"
-}
-
 output "private_ipv4_addrs" {
   value = ["${data.template_file.ipv4_addrs.*.rendered}"]
 }

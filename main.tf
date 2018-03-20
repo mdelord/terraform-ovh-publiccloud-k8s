@@ -22,67 +22,6 @@ data "openstack_networking_network_v2" "ext_net" {
   tenant_id = ""
 }
 
-locals {
-  # Compute the security group ID. If we do not create the securiy group (custom_security_group is set to true),
-  # we fallback on the givne security_group_id variable.
-  security_group_id = "${coalesce(join("", openstack_networking_secgroup_v2.pub.*.id), var.security_group_id)}"
-}
-
-resource "openstack_networking_secgroup_v2" "pub" {
-  count       = "${var.associate_public_ipv4 && !var.custom_security_group ? 1 : 0}"
-  name        = "${var.name}_pub_sg"
-  description = "${var.name} security group for public ingress traffic"
-}
-
-resource "openstack_networking_secgroup_rule_v2" "in_traffic_etcd" {
-  count             = "${var.associate_public_ipv4 && var.etcd && !var.custom_security_group ? 1 : 0}"
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  protocol          = "tcp"
-  port_range_min    = "2379"
-  port_range_max    = "2380"
-  remote_group_id   = "${local.security_group_id}"
-  security_group_id = "${local.security_group_id}"
-}
-
-resource "openstack_networking_secgroup_rule_v2" "in_traffic_cfssl" {
-  count             = "${var.associate_public_ipv4 && var.cfssl && !var.custom_security_group ? 1 : 0}"
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  protocol          = "tcp"
-  port_range_min    = "${var.cfssl_port}"
-  port_range_max    = "${var.cfssl_port}"
-  remote_group_id   = "${local.security_group_id}"
-  security_group_id = "${local.security_group_id}"
-}
-
-# auth all ports ; TODO filter only kube ports
-resource "openstack_networking_secgroup_rule_v2" "in_traffic_k8s_tcp" {
-  count             = "${var.associate_public_ipv4 && !var.custom_security_group ? 1 : 0}"
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  protocol          = "tcp"
-  remote_group_id   = "${local.security_group_id}"
-  security_group_id = "${local.security_group_id}"
-}
-
-resource "openstack_networking_secgroup_rule_v2" "in_traffic_k8s_udp" {
-  count             = "${var.associate_public_ipv4 && !var.custom_security_group ? 1 : 0}"
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  protocol          = "udp"
-  remote_group_id   = "${local.security_group_id}"
-  security_group_id = "${local.security_group_id}"
-}
-
-resource "openstack_networking_secgroup_rule_v2" "egress-ipv4" {
-  count             = "${var.associate_public_ipv4 && !var.custom_security_group ? 1 : 0}"
-  direction         = "egress"
-  ethertype         = "IPv4"
-  security_group_id = "${local.security_group_id}"
-  remote_ip_prefix  = "0.0.0.0/0"
-}
-
 resource "openstack_networking_port_v2" "public_port_k8s" {
   count = "${var.associate_public_ipv4 ? var.count : 0}"
   name  = "${var.name}_public_${count.index}"
@@ -90,9 +29,7 @@ resource "openstack_networking_port_v2" "public_port_k8s" {
   network_id     = "${data.openstack_networking_network_v2.ext_net.id}"
   admin_state_up = "true"
 
-  security_group_ids = [
-    "${compact(list(join("", openstack_networking_secgroup_v2.pub.*.id), var.security_group_id, var.ssh_security_group_id))}"
-  ]
+  security_group_ids = ["${var.security_group_ids}"]
 }
 
 data "template_file" "public_ipv4_addrs" {
@@ -168,21 +105,20 @@ module "userdata" {
 }
 
 resource "openstack_compute_instance_v2" "multinet_k8s" {
-  count    = "${var.associate_public_ipv4 && var.associate_private_ipv4 ? var.count : 0}"
-  name     = "${var.name}_${count.index}"
-  image_id = "${element(coalescelist(data.openstack_images_image_v2.k8s.*.id, list(var.image_id)), 0)}"
-
-  flavor_name = "${var.flavor_name}"
-  user_data   = "${element(module.userdata.rendered, count.index)}"
+  count              = "${var.associate_public_ipv4 && var.associate_private_ipv4 ? var.count : 0}"
+  name               = "${var.name}_${count.index}"
+  image_id           = "${element(coalescelist(data.openstack_images_image_v2.k8s.*.id, list(var.image_id)), 0)}"
+  flavor_name        = "${var.flavor_name}"
+  user_data          = "${element(module.userdata.rendered, count.index)}"
 
   network {
-    port           = "${element(openstack_networking_port_v2.port_k8s.*.id, count.index)}"
+    port = "${element(openstack_networking_port_v2.port_k8s.*.id, count.index)}"
   }
 
   # Important: orders of network declaration matters because public internet interface must be eth1
   network {
     access_network = true
-    port = "${element(openstack_networking_port_v2.public_port_k8s.*.id, count.index)}"
+    port           = "${element(openstack_networking_port_v2.public_port_k8s.*.id, count.index)}"
   }
 
   scheduler_hints {
@@ -193,12 +129,11 @@ resource "openstack_compute_instance_v2" "multinet_k8s" {
 }
 
 resource "openstack_compute_instance_v2" "singlenet_k8s" {
-  count    = "${! (var.associate_public_ipv4 && var.associate_private_ipv4) ? var.count : 0}"
-  name     = "${var.name}_${count.index}"
-  image_id = "${element(coalescelist(data.openstack_images_image_v2.k8s.*.id, list(var.image_id)), 0)}"
-
-  flavor_name = "${var.flavor_name}"
-  user_data   = "${element(module.userdata.rendered, count.index)}"
+  count              = "${! (var.associate_public_ipv4 && var.associate_private_ipv4) ? var.count : 0}"
+  name               = "${var.name}_${count.index}"
+  image_id           = "${element(coalescelist(data.openstack_images_image_v2.k8s.*.id, list(var.image_id)), 0)}"
+  flavor_name        = "${var.flavor_name}"
+  user_data          = "${element(module.userdata.rendered, count.index)}"
 
   network {
     access_network = true
@@ -212,39 +147,38 @@ resource "openstack_compute_instance_v2" "singlenet_k8s" {
   metadata = "${merge(map("k8s_master_mode", var.master_mode), var.metadata)}"
 }
 
-
 module "post_install_cfssl" {
   source  = "ovh/publiccloud-cfssl/ovh//modules/install-cfssl"
   version = ">= 0.1.3"
 
-  count                   = "${var.post_install_modules && var.cfssl && var.count >= 1 ? 1 : 0}"
-  triggers                = ["${element(concat(openstack_compute_instance_v2.singlenet_k8s.*.id, openstack_compute_instance_v2.multinet_k8s.*.id), 0)}"]
-  ipv4_addrs              = ["${element(concat(openstack_compute_instance_v2.singlenet_k8s.*.access_ip_v4, openstack_compute_instance_v2.multinet_k8s.*.access_ip_v4), 0)}"]
-  ssh_user                = "${var.ssh_user}"
-  ssh_bastion_host        = "${var.ssh_bastion_host}"
-  ssh_bastion_user        = "${var.ssh_bastion_user}"
+  count            = "${var.post_install_modules && var.cfssl && var.count >= 1 ? 1 : 0}"
+  triggers         = ["${element(concat(openstack_compute_instance_v2.singlenet_k8s.*.id, openstack_compute_instance_v2.multinet_k8s.*.id), 0)}"]
+  ipv4_addrs       = ["${element(concat(openstack_compute_instance_v2.singlenet_k8s.*.access_ip_v4, openstack_compute_instance_v2.multinet_k8s.*.access_ip_v4), 0)}"]
+  ssh_user         = "${var.ssh_user}"
+  ssh_bastion_host = "${var.ssh_bastion_host}"
+  ssh_bastion_user = "${var.ssh_bastion_user}"
 }
 
 module "post_install_etcd" {
   source  = "ovh/publiccloud-etcd/ovh//modules/install-etcd"
   version = "0.1.2"
 
-  count                   = "${var.post_install_modules && var.etcd ? var.count : 0}"
-  triggers                = ["${concat(openstack_compute_instance_v2.singlenet_k8s.*.id, openstack_compute_instance_v2.multinet_k8s.*.id)}"]
-  ipv4_addrs              = ["${concat(openstack_compute_instance_v2.singlenet_k8s.*.access_ip_v4, openstack_compute_instance_v2.multinet_k8s.*.access_ip_v4)}"]
-  ssh_user                = "${var.ssh_user}"
-  ssh_bastion_host        = "${var.ssh_bastion_host}"
-  ssh_bastion_user        = "${var.ssh_bastion_user}"
+  count            = "${var.post_install_modules && var.etcd ? var.count : 0}"
+  triggers         = ["${concat(openstack_compute_instance_v2.singlenet_k8s.*.id, openstack_compute_instance_v2.multinet_k8s.*.id)}"]
+  ipv4_addrs       = ["${concat(openstack_compute_instance_v2.singlenet_k8s.*.access_ip_v4, openstack_compute_instance_v2.multinet_k8s.*.access_ip_v4)}"]
+  ssh_user         = "${var.ssh_user}"
+  ssh_bastion_host = "${var.ssh_bastion_host}"
+  ssh_bastion_user = "${var.ssh_bastion_user}"
 }
 
 module "post_install_k8s" {
-  source                  = "./modules/install-k8s"
-  count                   = "${var.post_install_modules ? var.count : 0}"
-  triggers                = ["${concat(openstack_compute_instance_v2.singlenet_k8s.*.id, openstack_compute_instance_v2.multinet_k8s.*.id)}"]
-  ipv4_addrs              = ["${concat(openstack_compute_instance_v2.singlenet_k8s.*.access_ip_v4, openstack_compute_instance_v2.multinet_k8s.*.access_ip_v4)}"]
-  ssh_user                = "${var.ssh_user}"
-  ssh_bastion_host        = "${var.ssh_bastion_host}"
-  ssh_bastion_user        = "${var.ssh_bastion_user}"
+  source           = "./modules/install-k8s"
+  count            = "${var.post_install_modules ? var.count : 0}"
+  triggers         = ["${concat(openstack_compute_instance_v2.singlenet_k8s.*.id, openstack_compute_instance_v2.multinet_k8s.*.id)}"]
+  ipv4_addrs       = ["${concat(openstack_compute_instance_v2.singlenet_k8s.*.access_ip_v4, openstack_compute_instance_v2.multinet_k8s.*.access_ip_v4)}"]
+  ssh_user         = "${var.ssh_user}"
+  ssh_bastion_host = "${var.ssh_bastion_host}"
+  ssh_bastion_user = "${var.ssh_bastion_user}"
 }
 
 # This is somekind of a hack to ensure that when instances ids are output and made

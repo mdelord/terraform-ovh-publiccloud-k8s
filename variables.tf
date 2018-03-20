@@ -78,14 +78,10 @@ DESC
   default = [""]
 }
 
-variable "custom_security_group" {
-  description = "If set to true, use the given security_group_id instead of creating a new one. Please note that security group rules will not be added if set to true."
-  default     = false
-}
-
-variable "security_group_id" {
-  description = "If custom_security_group is set to true, the security group to use to attach."
-  default     = ""
+variable "security_group_ids" {
+  type        = "list"
+  description = "The list of security groups ids to attach to nodes. You should make use of the module k8s-secgroups. This is required if associate_public_ipv4 is set to `true`"
+  default     = []
 }
 
 variable "cacert" {
@@ -137,11 +133,6 @@ variable "ssh_bastion_host" {
 
 variable "ssh_bastion_user" {
   description = "The ssh username of the bastion host used to post provision the k8s cluster. This may be required if `post_install_module` is set to `true`"
-  default     = ""
-}
-
-variable "ssh_security_group_id" {
-  description = "The ssh security group to integrate to the neutron port"
   default     = ""
 }
 
