@@ -80,7 +80,7 @@ data "ignition_systemd_unit" "k8s-init-service" {
   content = <<CONTENT
 [Unit]
 Description=Bootstrap a Kubernetes cluster with kubeadm
-Wants=etcd.service
+${var.master_mode ? "Wants=etcd.service" : "Wants=etcd-get-certs.service"}
 ConditionPathExists=!/opt/k8s/init.done
 
 [Service]
@@ -88,8 +88,11 @@ RemainAfterExit=true
 Restart=on-failure
 StartLimitInterval=0
 RestartSec=10
-Environment=MASTER_AS_WORKER=${var.master_as_worker}
-ExecStartPre=/usr/bin/systemctl is-active etcd.service
+Environment=MASTER_MODE=${var.master_mode}
+Environment=WORKER_MODE=${var.worker_mode}
+Environment=ETCD_ENDPOINTS=${var.etcd_endpoints}
+Environment=API_ENDPOINT=${var.api_endpoint}
+${var.master_mode ? "ExecStartPre=/usr/bin/systemctl is-active etcd.service" : ""}
 ExecStart=/opt/k8s/k8s-init
 
 [Install]
@@ -121,5 +124,16 @@ data "ignition_file" "cni-manifest" {
   path = "/etc/kubernetes/cni/cni-manifest.yaml"
   content {
     content = "${data.template_file.cni-manifest.rendered}"
+  }
+}
+
+data "ignition_systemd_unit" "etcd-get-certs-dropin" {
+  name = "etcd-get-certs.service"
+  dropin {
+    name = "cfssl.conf"
+    content = <<CONTENT
+[Service]
+Environment=CFSSL_ENDPOINT=${var.cfssl_endpoint}
+CONTENT
   }
 }

@@ -78,9 +78,9 @@ DESC
   default = [""]
 }
 
-variable "public_security_group_ids" {
+variable "security_group_ids" {
   type        = "list"
-  description = "An optional list of additional security groups to attach to public ports"
+  description = "The list of security groups ids to attach to nodes. You should make use of the module k8s-secgroups. This is required if associate_public_ipv4 is set to `true`"
   default     = []
 }
 
@@ -152,7 +152,7 @@ variable "associate_private_ipv4" {
 }
 
 variable "master_mode" {
-  description = "Determines if nodes are k8s master nodes or simple workers"
+  description = "Determines if the node is a master"
   default     = false
 }
 
@@ -248,7 +248,17 @@ variable "etcd_initial_cluster" {
   default     = ""
 }
 
-variable "master_as_worker" {
-  description = "Determines if master are also worker"
+variable "etcd_endpoints" {
+  description = "etcd endpoints to call to query the etcd cluster"
+  default     = "https://localhost:2379"
+}
+
+variable "worker_mode" {
+  description = "Determines if the node is a worker"
   default     = false
+}
+
+variable "api_endpoint" {
+  description = "Kubernetes API endpoint (single IP or hostname) with port"
+  default     = "127.0.0.1:6443"
 }

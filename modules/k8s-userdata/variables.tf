@@ -54,13 +54,18 @@ variable "etcd_initial_cluster" {
   default = ""
 }
 
+variable "etcd_endpoints" {
+  description = "etcd endpoints to call to query the etcd cluster"
+  default = "https://localhost:2379"
+}
+
 variable "master_mode" {
-  description = "Determines if nodes are k8s master nodes or simple workers"
+  description = "Determines if the node is a master"
   default     = false
 }
 
-variable "master_as_worker" {
-  description = "Determines if master are also worker"
+variable "worker_mode" {
+  description = "Determines if the node is a worker"
   default     = false
 }
 
@@ -139,4 +144,9 @@ variable "cfssl_bind" {
 variable "cfssl_port" {
   description = "cfssl service bind port"
   default     = "8888"
+}
+
+variable "api_endpoint" {
+  description = "Kubernetes API endpoint (single IP or hostname)"
+  default     = "127.0.0.1"
 }

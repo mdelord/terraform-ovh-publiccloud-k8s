@@ -5,17 +5,26 @@ This repo contains a Module for how to deploy a [Kubernetes](https://kubernetes.
 # Usage
 
 ```hcl
+module "k8s_secgroups" {
+  source = "bovh/publiccloud-k8s/ovh//modules/k8s-secgroups"
+  name   = "myk8s"
+  etcd   = true
+  cfssl  = true
+}
+
 module "k8s" {
   source                    = "ovh/publiccloud-k8s/ovh"
   region                    = "BHS3"
   name                      = "myk8s"
   count                     = 3
   master_mode               = true
+  worker_mode               = true
   cfssl                     = true
   etcd                      = true
   image_name                = "CoreOS Stable K8S"
   flavor_name               = "b2-7"
   ignition_mode             = true
+  security_group_ids        = ["${module.k8s_secgroups.master_group_id}", "${module.k8s_secgroups.worker_group_id}"]
   associate_public_ipv4     = true
   associate_private_ipv4    = false
 }

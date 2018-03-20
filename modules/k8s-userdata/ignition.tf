@@ -97,6 +97,7 @@ data "ignition_config" "coreos" {
     "${data.ignition_systemd_unit.docker_service.id}",
     "${data.ignition_systemd_unit.kubelet_service.id}",
     "${data.ignition_systemd_unit.k8s-init-service.id}",
+    "${data.ignition_systemd_unit.etcd-get-certs-dropin.id}",
   ]
 
   networkd = [
