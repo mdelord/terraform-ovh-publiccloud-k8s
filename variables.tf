@@ -117,7 +117,7 @@ EOD
 }
 
 variable "post_install_modules" {
-  description = "Setting this variable to true will assume the necessary software to boot the cluster hasn't packaged in the image and thus will be post provisionned. Defaults to `false`"
+  description = "Setting this variable to true will assume the necessary software to boot the cluster hasn't packaged in the image and thus will be post provisionned. Defaults to `true`"
   default     = true
 }
 

@@ -16,6 +16,17 @@ module "k8s_secgroups" {
   cfssl  = true
 }
 
+
+resource "openstack_networking_secgroup_rule_v2" "in_traffic_k8s_sg" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  remote_ip_prefix  = "${data.http.myip.body}/32"
+  port_range_min    = 6443
+  port_range_max    = 6443
+  security_group_id = "${module.k8s_secgroups.master_group_id}"
+}
+
 resource "openstack_networking_secgroup_rule_v2" "in_traffic_ssh_master" {
   direction         = "ingress"
   ethertype         = "IPv4"
