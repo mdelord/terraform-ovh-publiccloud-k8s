@@ -76,7 +76,7 @@ module "k8s_workers" {
   cfssl                  = false
   cfssl_endpoint         = "${module.k8s_masters.cfssl_endpoint}"
   etcd                   = true
-  etcd_endpoints         = "${join(",", formatlist("https://%s:2379", module.k8s_masters.public_ipv4_addrs))}"
+  etcd_endpoints         = "${module.k8s_masters.etcd_endpoints}"
   post_install_modules   = true
   image_name             = "CoreOS Stable"
   flavor_name            = "${var.os_flavor_name_workers}"
@@ -86,7 +86,7 @@ module "k8s_workers" {
   security_group_ids     = ["${module.k8s_secgroups.worker_group_id}"]
   associate_public_ipv4  = true
   associate_private_ipv4 = false
-
-  # TODO: replace this by a DNS entry to round robin on masters IP
-  api_endpoint = "${format("%s:6443", element(module.k8s_masters.public_ipv4_addrs, 1))}"
+  custom_security_group  = true
+  security_group_id      = "${module.k8s_masters.security_group_id}"
+  api_endpoint           = "${module.k8s_masters.api_endpoint}"
 }
