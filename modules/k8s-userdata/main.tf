@@ -26,7 +26,7 @@ module "cfssl" {
 
 module "etcd" {
   source  = "ovh/publiccloud-etcd/ovh//modules/etcd-userdata"
-  version = ">= 0.1.1"
+  version = "0.1.2"
   count                = "${var.count}"
   name                 = "${var.name}"
   ignition_mode        = "${var.ignition_mode}"
