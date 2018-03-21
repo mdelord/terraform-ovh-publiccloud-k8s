@@ -41,3 +41,8 @@ variable "public_sshkey" {
   description = "Key to use to ssh connect"
   default     = "~/.ssh/id_rsa.pub"
 }
+
+variable "authorized_ips" {
+  description = "List of authorized IP (CIDR) to access SSH and API"
+  type = "list"
+}

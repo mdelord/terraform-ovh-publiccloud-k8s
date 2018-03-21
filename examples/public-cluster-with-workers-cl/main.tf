@@ -5,10 +5,6 @@ provider "openstack" {
   auth_url  = "${var.os_auth_url}"
 }
 
-data "http" "myip" {
-  url = "https://api.ipify.org/"
-}
-
 module "k8s_secgroups" {
   source = "../../modules/k8s-secgroups"
   name   = "${var.name}"
@@ -17,30 +13,33 @@ module "k8s_secgroups" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "in_traffic_ssh_master" {
+  count             = "${length(var.authorized_ips)}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
-  remote_ip_prefix  = "${data.http.myip.body}/32"
+  remote_ip_prefix  = "${element(var.authorized_ips, count.index)}"
   port_range_min    = 22
   port_range_max    = 22
   security_group_id = "${module.k8s_secgroups.master_group_id}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "in_traffic_ssh_worker" {
+  count             = "${length(var.authorized_ips)}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
-  remote_ip_prefix  = "${data.http.myip.body}/32"
+  remote_ip_prefix  = "${element(var.authorized_ips, count.index)}"
   port_range_min    = 22
   port_range_max    = 22
   security_group_id = "${module.k8s_secgroups.worker_group_id}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "k8s-api" {
+  count             = "${length(var.authorized_ips)}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
-  remote_ip_prefix  = "${data.http.myip.body}/32"
+  remote_ip_prefix  = "${element(var.authorized_ips, count.index)}"
   port_range_min    = 6443
   port_range_max    = 6443
   security_group_id = "${module.k8s_secgroups.master_group_id}"
