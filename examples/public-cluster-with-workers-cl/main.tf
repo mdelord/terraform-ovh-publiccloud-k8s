@@ -57,12 +57,9 @@ module "k8s_masters" {
   post_install_modules   = true
   image_name             = "CoreOS Stable"
   flavor_name            = "${var.os_flavor_name_masters}"
-  ignition_mode          = true
   ssh_user               = "core"
   ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
   security_group_ids     = ["${module.k8s_secgroups.master_group_id}"]
-  associate_public_ipv4  = true
-  associate_private_ipv4 = false
 }
 
 module "k8s_workers" {
@@ -79,11 +76,8 @@ module "k8s_workers" {
   post_install_modules   = true
   image_name             = "CoreOS Stable"
   flavor_name            = "${var.os_flavor_name_workers}"
-  ignition_mode          = true
   ssh_user               = "core"
   ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
   security_group_ids     = ["${module.k8s_secgroups.worker_group_id}"]
-  associate_public_ipv4  = true
-  associate_private_ipv4 = false
   api_endpoint           = "${module.k8s_masters.api_endpoint}"
 }

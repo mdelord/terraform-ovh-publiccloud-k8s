@@ -14,8 +14,7 @@ data "openstack_networking_network_v2" "ext_net" {
 }
 
 data "template_file" "public_ipv4_addrs" {
-  count = "${var.associate_public_ipv4 ? var.count : 0}"
-
+  count = "${var.count}"
   # join all ips as string > remove every ipv6 > split & compact
   template = "${element(compact(split(",", replace(join(",", flatten(openstack_networking_port_v2.public_port_k8s.*.all_fixed_ips)), "/[[:alnum:]]+:[^,]+/", ""))), count.index)}"
 }
@@ -55,7 +54,6 @@ module "userdata" {
   count = "${var.count}"
   master_mode = "${var.master_mode}"
   name = "${var.name}"
-  ignition_mode = "${var.ignition_mode}"
   domain = "${var.domain}"
   datacenter = "${var.datacenter}"
   region = "${var.region}"
@@ -86,8 +84,6 @@ module "post_install_cfssl" {
   triggers = ["${element(openstack_compute_instance_v2.k8s.*.id, 0)}"]
   ipv4_addrs = ["${element(openstack_compute_instance_v2.k8s.*.access_ip_v4, 0)}"]
   ssh_user = "${var.ssh_user}"
-  ssh_bastion_host = "${var.ssh_bastion_host}"
-  ssh_bastion_user = "${var.ssh_bastion_user}"
 }
 
 module "post_install_etcd" {
@@ -97,8 +93,6 @@ module "post_install_etcd" {
   triggers = ["${openstack_compute_instance_v2.k8s.*.id}"]
   ipv4_addrs = ["${openstack_compute_instance_v2.k8s.*.access_ip_v4}"]
   ssh_user = "${var.ssh_user}"
-  ssh_bastion_host = "${var.ssh_bastion_host}"
-  ssh_bastion_user = "${var.ssh_bastion_user}"
 }
 
 module "post_install_k8s" {
@@ -107,8 +101,6 @@ module "post_install_k8s" {
   triggers = ["${openstack_compute_instance_v2.k8s.*.id}"]
   ipv4_addrs = ["${openstack_compute_instance_v2.k8s.*.access_ip_v4}"]
   ssh_user = "${var.ssh_user}"
-  ssh_bastion_host = "${var.ssh_bastion_host}"
-  ssh_bastion_user = "${var.ssh_bastion_user}"
 }
 
 # This is somekind of a hack to ensure that when instances ids are output and made
@@ -125,7 +117,7 @@ data "template_file" "instances_ids" {
 }
 
 data "template_file" "public_ipv4_dns" {
-  count = "${var.associate_public_ipv4 ? var.count : 0}"
+  count = "${var.count}"
   template = "ip$${ip4}.ip-$${ip1}-$${ip2}-$${ip3}.$${domain}"
   vars {
     id = "${element(data.template_file.instances_ids.*.rendered, count.index)}"

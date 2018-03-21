@@ -8,8 +8,6 @@ resource "null_resource" "post_install_k8s" {
   connection {
     host                = "${element(var.ipv4_addrs, count.index)}"
     user                = "${var.ssh_user}"
-    bastion_host        = "${var.ssh_bastion_host}"
-    bastion_user        = "${var.ssh_bastion_user}"
   }
 
   provisioner "remote-exec" {

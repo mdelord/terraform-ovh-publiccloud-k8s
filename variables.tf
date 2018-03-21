@@ -46,26 +46,12 @@ variable "count" {
 
 variable "subnet_ids" {
   type = "list"
-
   description = <<DESC
 The list of subnets ids to deploy k8s nodes in.
 If `count` is specified, will spawn `count` k8s node
 accross the list of subnets. Conflicts with `subnets`.
 DESC
-
   default = []
-}
-
-variable "subnets" {
-  type = "list"
-
-  description = <<DESC
-The list of subnets CIDR blocks to deploy k8s nodes in.
-If `count` is specified, will spawn `count` k8s node
-accross the list of subnets. Conflicts with `subnet_ids`.
-DESC
-
-  default = [""]
 }
 
 variable "security_group_ids" {
@@ -101,7 +87,6 @@ variable "service_cidr" {
 CIDR IPv4 range to assign Kubernetes services.
 The 1st IP will be reserved for kube_apiserver, the 10th IP will be reserved for kube-dns.
 EOD
-
   type    = "string"
   default = "10.3.0.0/16"
 }
@@ -116,31 +101,6 @@ variable "ssh_user" {
   default     = "core"
 }
 
-variable "ssh_bastion_host" {
-  description = "The address of the bastion host used to post provision the k8s cluster. This may be required if `post_install_module` is set to `true`"
-  default     = ""
-}
-
-variable "ssh_bastion_user" {
-  description = "The ssh username of the bastion host used to post provision the k8s cluster. This may be required if `post_install_module` is set to `true`"
-  default     = ""
-}
-
-variable "ignition_mode" {
-  description = "Set to true if os family supports ignition, such as CoreOS/Container Linux distribution"
-  default     = true
-}
-
-variable "associate_public_ipv4" {
-  description = "Associate a public ipv4 with the k8s nodes"
-  default     = false
-}
-
-variable "associate_private_ipv4" {
-  description = "Associate a private ipv4 with the k8s nodes"
-  default     = true
-}
-
 variable "master_mode" {
   description = "Determines if the node is a master"
   default     = false
@@ -148,7 +108,6 @@ variable "master_mode" {
 
 variable "ip_dns_domains" {
   description = "Every public ipv4 addr at OVH is registered as a A record in DNS zones according to the format ip 1.2.3.4 > ip4.ip-q1-2-3.eu for EU regions or  ip4.ip-1-2-3.net for other ones. This variables maps the domain name to use according to the region."
-
   default = {
     GRA1 = "eu"
     SBG3 = "eu"
@@ -178,7 +137,6 @@ A systemd unit will then get tls keypairs for the etcd service.
 At every etcd agent restart, if tls keypair is older than 1h,
 a new keypair will be fetched.
 DESC
-
   default = false
 }
 
@@ -229,7 +187,6 @@ Defines if node shall be started as an etcd cluster member. If set to `true`
 and no `etcd_initial_cluster` is given as argument, etcd will
 bootstrap a new cluster.
 DESC
-
   default = false
 }
 
