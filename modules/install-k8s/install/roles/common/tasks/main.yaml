@@ -1,0 +1,21 @@
+---
+- name: Create binaries directory
+  file:
+    path: /opt/bin
+    owner: root
+    group: root
+    mode: 0750
+    state: directory
+
+- name: Clean cloud files
+  file:
+    path: "{{item}}"
+    state: absent
+  with_items:
+    - /etc/machine-id
+    - /var/lib/cloud
+
+- name: Recreate first boot file
+  file:
+    path: /boot/coreos/first_boot
+    state: touch

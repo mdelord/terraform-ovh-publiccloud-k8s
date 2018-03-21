@@ -13,32 +13,19 @@
     "cfssl_install_dir": "install-cfssl-0.1.1/terraform-ovh-publiccloud-cfssl-0.1.1/modules/install-cfssl",
     "etcd_version": "3.3.0",
     "etcd_sha256sum": "d91efb17ab0813039e24863a1af154b153d4b1a009181d6faa18e8ab681676dc",
-    "etcd_install_dir": "install-etcd-0.1.1/terraform-ovh-publiccloud-cfssl-0.1.1/modules/install-cfssl",
-    "k8s_version": "1.9.2",
-    "k8s_calico_node_version": "2.6.7",
-    "k8s_calico_cni_version": "1.11.2",
-    "k8s_flannel_version": "0.9.1",
-    "k8s_kubedns_version": "1.14.7",
-    "k8s_pause_version": "3.0",
-    "k8s_cni_plugins_version": "0.7.0",
-    "k8s_sha1sum_cni_plugins": "379c54de9c973f3a5323ae44ce664ac1175eede2",
-    "k8s_sha1sum_kubelet": "b27e42094c102fa0e053b69916b754746904bc8e",
-    "k8s_sha1sum_kubectl": "144534762b792c18f8d93c809b60c42f0826dd03",
-    "k8s_sha1sum_kubeadm": "248e1229ccd48e7be1c33252cd83b2f23a16acc2"
+    "etcd_install_dir": "install-etcd-0.1.1/terraform-ovh-publiccloud-cfssl-0.1.1/modules/install-cfssl"
   },
   "builders": [
     {
       "type": "openstack",
+      "flavor": "s1-2",
+      "image_name": "{{user `source_image_name`}} K8s",
+      "source_image_name": "{{user `source_image_name`}}",
       "identity_endpoint": "{{user `identity_endpoint`}}",
       "region": "{{user `region`}}",
       "ssh_username": "{{user `ssh_username`}}",
-      "image_name": "{{user `source_image_name`}} K8s",
-      "source_image_name": "{{user `source_image_name`}}",
       "ssh_ip_version": "4",
-      "flavor": "s1-2",
-      "networks": [
-        "{{user `ext_net_id`}}"
-      ]
+      "networks": ["{{user `ext_net_id`}}"]
     }
   ],
   "provisioners": [
@@ -65,18 +52,53 @@
       "destination": "/tmp/tmp-modules"
     },
     {
+      "type": "shell-local",
+      "command": "rm -rf {{template_dir}}/tmp-module"
+    },
+    {
       "type": "shell",
       "inline": [
         "/tmp/tmp-modules/tmp-module/terraform-ovh-cfssl/modules/install-cfssl/install-cfssl --version {{user `cfssl_version`}} --sha256sum {{user `cfssl_sha256sum`}}",
-        "/tmp/tmp-modules/tmp-module/terraform-ovh-etcd/modules/install-etcd/install-etcd --version {{user `etcd_version`}} --sha256sum {{user `etcd_sha256sum`}}",
-        "/tmp/current-module/install-k8s/install-k8s --k8s-version  {{user `k8s_version`}} --calico-node-version  {{user `k8s_calico_node_version`}} --calico-cni-version  {{user `k8s_calico_cni_version`}} --flannel-version {{user `k8s_flannel_version`}} --kubedns-version  {{user `k8s_kubedns_version`}} --pause-version {{user `k8s_pause_version`}} --cni-plugins-version {{user `k8s_cni_plugins_version`}} --sha1sum-cni-plugins  {{user `k8s_sha1sum_cni_plugins`}} --sha1sum-kubeadm  {{user `k8s_sha1sum_kubeadm`}} --sha1sum-kubelet  {{user `k8s_sha1sum_kubelet`}} --sha1sum-kubectl  {{user `k8s_sha1sum_kubectl`}}",
-        "sudo rm -Rf /var/lib/cloud/* /tmp/* /etc/machine-id",
-        "if [ -d /boot/coreos ]; then sudo touch /boot/coreos/first_boot; fi"
+        "/tmp/tmp-modules/tmp-module/terraform-ovh-etcd/modules/install-etcd/install-etcd --version {{user `etcd_version`}} --sha256sum {{user `etcd_sha256sum`}}"
       ]
     },
     {
-      "type": "shell-local",
-      "command": "rm -rf {{template_dir}}/tmp-module"
+      "type": "file",
+      "source": "../../modules/install-k8s/install/scripts/install_python.sh",
+      "destination": "/tmp/"
+    },
+    {
+      "type": "file",
+      "source": "../../modules/install-k8s/install/scripts/install_ansible.sh",
+      "destination": "/tmp/"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo bash /tmp/install_python.sh",
+        "sudo bash /tmp/install_ansible.sh"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "vars.yaml",
+      "destination": "/tmp/vars.yaml"
+    },
+    {
+      "type": "ansible-local",
+      "playbook_file": "../../modules/install-k8s/install/site.yaml",
+      "role_paths": [
+        "../../modules/install-k8s/install/roles/common",
+        "../../modules/install-k8s/install/roles/kubernetes"
+      ],
+      "command": "ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 /opt/python/bin/ansible-playbook",
+      "extra_arguments": ["-vvv --extra-vars ansible_python_interpreter=/opt/python/bin/python2.7 --extra-vars @/tmp/vars.yaml"]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo rm -rf /opt/python"
+      ]
     }
   ]
 }

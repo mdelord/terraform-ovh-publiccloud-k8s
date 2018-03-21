@@ -1,0 +1,53 @@
+---
+- name: Create binaries directory
+  file:
+    path: /opt/kubernetes
+    owner: root
+    group: root
+    mode: 0750
+    state: directory
+
+- name: Get binaries
+  get_url:
+    url: |
+      https://storage.googleapis.com/kubernetes-release/release/v{{kubernetes_version}}/bin/linux/amd64/{{item}}
+    dest: /opt/kubernetes/{{item}}
+    # FIXME: complains about the cert validy while the cert is valid using cURL
+    validate_certs: false
+    owner: root
+    group: root
+    mode: 0750
+  with_items:
+    - kubeadm
+    - kubelet
+    - kubectl
+
+- name: Create binaries symlink
+  file:
+    src: /opt/kubernetes/{{item}}
+    dest: /opt/bin/{{item}}
+    state: link
+  with_items:
+    - kubeadm
+    - kubelet
+    - kubectl
+
+- name: Prepull docker images
+  docker_image:
+    name: "{{item}}"
+  with_items:
+    # Control plane images
+    - "gcr.io/google_containers/kube-apiserver-amd64:v{{kubernetes_version}}"
+    - "gcr.io/google_containers/kube-scheduler-amd64:v{{kubernetes_version}}"
+    - "gcr.io/google_containers/kube-controller-manager-amd64:v{{kubernetes_version}}"
+    - "gcr.io/google_containers/kube-proxy-amd64:v{{kubernetes_version}}"
+    # Pause image
+    - "gcr.io/google_containers/pause-amd64:{{pause_version}}"
+    # CNI images
+    - "quay.io/calico/node:v{{calico_node_version}}"
+    - "quay.io/calico/cni:v{{calico_cni_version}}"
+    - "quay.io/coreos/flannel:v{{flannel_version}}"
+    # Addons
+    - "gcr.io/google_containers/k8s-dns-sidecar-amd64:{{kubedns_version}}"
+    - "gcr.io/google_containers/k8s-dns-kube-dns-amd64:{{kubedns_version}}"
+    - "gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:{{kubedns_version}}"

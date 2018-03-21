@@ -1,0 +1,7 @@
+---
+- name: Install stuff
+  become: true
+  hosts: all
+  roles:
+    - common
+    - kubernetes
