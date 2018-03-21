@@ -34,3 +34,6 @@ openrc
 ovhrc
 id_rsa*
 terraform_ssh_key*
+
+# ignore tests files copied in example directories
+examples/**/test*.tf
