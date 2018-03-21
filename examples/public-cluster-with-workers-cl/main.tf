@@ -86,7 +86,5 @@ module "k8s_workers" {
   security_group_ids     = ["${module.k8s_secgroups.worker_group_id}"]
   associate_public_ipv4  = true
   associate_private_ipv4 = false
-  custom_security_group  = true
-  security_group_id      = "${module.k8s_masters.security_group_id}"
   api_endpoint           = "${module.k8s_masters.api_endpoint}"
 }
