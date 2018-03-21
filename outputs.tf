@@ -1,7 +1,3 @@
-output "private_ipv4_addrs" {
-  value = ["${data.template_file.ipv4_addrs.*.rendered}"]
-}
-
 output "public_ipv4_addrs" {
   value = ["${data.template_file.public_ipv4_addrs.*.rendered}"]
 }

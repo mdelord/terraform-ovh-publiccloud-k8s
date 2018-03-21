@@ -24,11 +24,6 @@ variable "datacenter" {
   default     = "dc1"
 }
 
-variable "image_id" {
-  description = "The ID of the glance image to run in the cluster. If `post_install_module` is set to `false`, this should be an image built from the Packer template under examples/k8s-glance-image/k8s.json. If the default value is used, Terraform will look up the latest image build automatically."
-  default     = ""
-}
-
 variable "image_name" {
   description = "The name of the glance image to run in the cluster. If `post_install_module` is set to `false`, this should be an image built from the Packer template under examples/k8s-glance-image/k8s.json. If the default value is used, Terraform will look up the latest image build automatically."
   default     = "CoreOS Stable"
@@ -47,11 +42,6 @@ variable "count" {
   type        = "string"
   default     = "1"
   description = "Number of nodes"
-}
-
-variable "metadata" {
-  description = "A map of metadata to add to all resources supporting it."
-  default     = {}
 }
 
 variable "subnet_ids" {
