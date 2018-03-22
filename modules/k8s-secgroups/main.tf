@@ -221,6 +221,16 @@ resource "openstack_networking_secgroup_rule_v2" "api-server-from-worker" {
   security_group_id = "${openstack_networking_secgroup_v2.master.id}"
 }
 
+resource "openstack_networking_secgroup_rule_v2" "kubelet_master_master" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 10250
+  port_range_max    = 10250
+  remote_group_id   = "${openstack_networking_secgroup_v2.master.id}"
+  security_group_id = "${openstack_networking_secgroup_v2.master.id}"
+}
+
 resource "openstack_networking_secgroup_rule_v2" "kubelet_master_worker" {
   direction         = "ingress"
   ethertype         = "IPv4"
@@ -267,6 +277,26 @@ resource "openstack_networking_secgroup_rule_v2" "kubelet-read-master_worker" {
   port_range_max    = 10255
   remote_group_id   = "${openstack_networking_secgroup_v2.master.id}"
   security_group_id = "${openstack_networking_secgroup_v2.worker.id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "kubelet-read-master_master" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 10255
+  port_range_max    = 10255
+  remote_group_id   = "${openstack_networking_secgroup_v2.master.id}"
+  security_group_id = "${openstack_networking_secgroup_v2.master.id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "kubelet-read-worker_master" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 10255
+  port_range_max    = 10255
+  remote_group_id   = "${openstack_networking_secgroup_v2.worker.id}"
+  security_group_id = "${openstack_networking_secgroup_v2.master.id}"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "calico-bgp_master_master" {
