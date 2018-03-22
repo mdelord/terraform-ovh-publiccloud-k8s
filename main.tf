@@ -62,28 +62,13 @@ module "userdata" {
   pod_cidr = "${var.pod_cidr}"
   cacert = "${var.cacert}"
   cacert_key = "${var.cacert_key}"
-  cfssl = "${var.cfssl}"
-  cfssl_endpoint = "${var.cfssl_endpoint}"
   etcd = "${var.etcd}"
   etcd_initial_cluster = "${var.etcd_initial_cluster}"
   etcd_endpoints = "${var.etcd_endpoints}"
   ipv4_addrs = "${data.template_file.public_ipv4_addrs.*.rendered}"
   ssh_authorized_keys = "${var.ssh_authorized_keys}"
-  cfssl_key_algo = "${var.cfssl_key_algo}"
-  cfssl_key_size = "${var.cfssl_key_size}"
-  cfssl_bind = "${var.cfssl_bind}"
-  cfssl_port = "${var.cfssl_port}"
   api_endpoint = "${var.api_endpoint}"
   worker_mode = "${var.worker_mode}"
-}
-
-module "post_install_cfssl" {
-  source  = "ovh/publiccloud-cfssl/ovh//modules/install-cfssl"
-  version = ">= 0.1.3"
-  count = "${var.post_install_modules && var.cfssl && var.count >= 1 ? 1 : 0}"
-  triggers = ["${element(openstack_compute_instance_v2.k8s.*.id, 0)}"]
-  ipv4_addrs = ["${element(openstack_compute_instance_v2.k8s.*.access_ip_v4, 0)}"]
-  ssh_user = "${var.ssh_user}"
 }
 
 module "post_install_etcd" {
@@ -111,7 +96,6 @@ data "template_file" "instances_ids" {
   vars {
     id = "${element(openstack_compute_instance_v2.k8s.*.id, count.index)}"
     install_k8s_id = "${element(coalescelist(module.post_install_k8s.install_ids, list("")), count.index)}"
-    install_cfssl_id = "${module.post_install_cfssl.install_id}"
     install_etcd_id = "${element(coalescelist(module.post_install_etcd.install_ids, list("")), count.index)}"
   }
 }

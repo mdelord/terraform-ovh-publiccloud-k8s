@@ -9,7 +9,6 @@ module "k8s_secgroups" {
   source = "../../modules/k8s-secgroups"
   name   = "${var.name}"
   etcd   = true
-  cfssl  = true
 }
 
 resource "openstack_networking_secgroup_rule_v2" "in_traffic_ssh_master" {
@@ -52,7 +51,6 @@ module "k8s_masters" {
   count                  = "${var.masters_count}"
   master_mode            = true
   worker_mode            = false
-  cfssl                  = true
   etcd                   = true
   post_install_modules   = true
   image_name             = "CoreOS Stable"
@@ -69,8 +67,6 @@ module "k8s_workers" {
   count                  = "${var.workers_count}"
   master_mode            = false
   worker_mode            = true
-  cfssl                  = false
-  cfssl_endpoint         = "${module.k8s_masters.cfssl_endpoint}"
   etcd                   = true
   etcd_endpoints         = "${module.k8s_masters.etcd_endpoints}"
   post_install_modules   = true

@@ -2,17 +2,6 @@ locals {
   network_route_tpl = "[Route]\nDestination=%s\nGatewayOnLink=yes\nRouteMetric=3\nScope=link\nProtocol=kernel"
 }
 
-data "ignition_file" "cfssl-conf" {
-  count      = "${var.count}"
-  filesystem = "root"
-  mode       = "0644"
-  path       = "/etc/sysconfig/cfssl.conf"
-
-  content {
-    content = "${module.cfssl.conf}"
-  }
-}
-
 data "ignition_file" "etcd-conf" {
   count      = "${var.count}"
   filesystem = "root"
@@ -21,38 +10,6 @@ data "ignition_file" "etcd-conf" {
 
   content {
     content = "${module.etcd.conf[count.index]}"
-  }
-}
-
-data "ignition_file" "cacert" {
-  count      = "${var.cacert != "" ? 1 : 0}"
-  filesystem = "root"
-  path       = "/etc/ssl/certs/cacert.pem"
-  mode       = "0644"
-
-  content {
-    content = "${var.cacert}"
-  }
-}
-
-data "ignition_file" "cfssl-cacert" {
-  filesystem = "root"
-  path       = "/opt/cfssl/cacert/ca.pem"
-  mode       = "0644"
-
-  content {
-    content = "${var.cacert}"
-  }
-}
-
-data "ignition_file" "cfssl-cakey" {
-  filesystem = "root"
-  path       = "/opt/cfssl/cacert/ca-key.pem"
-  mode       = "0600"
-  uid        = "1011"
-
-  content {
-    content = "${var.cacert_key}"
   }
 }
 
@@ -106,12 +63,8 @@ data "ignition_config" "coreos" {
   ]
 
   files = [
-    "${data.ignition_file.cacert.*.id}",
     "${var.master_mode && var.etcd ? element(data.ignition_file.etcd-conf.*.id, count.index) :""}",
 
-    "${var.master_mode && var.cfssl && var.cfssl_endpoint == "" && count.index == 0 ? data.ignition_file.cfssl-cacert.id : ""}",
-    "${var.master_mode && var.cfssl && var.cfssl_endpoint == "" && count.index == 0 ? data.ignition_file.cfssl-cakey.id : ""}",
-    "${var.master_mode && var.cfssl && var.cfssl_endpoint == "" && count.index == 0 ? element(data.ignition_file.cfssl-conf.*.id, 0) : ""}",
     # Added for k8s
     "${element(data.ignition_file.hostname.*.id, count.index)}",
     "${element(data.ignition_file.kubeconfig.*.id, count.index)}",

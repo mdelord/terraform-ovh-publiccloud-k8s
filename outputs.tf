@@ -2,10 +2,6 @@ output "public_ipv4_addrs" {
   value = ["${data.template_file.public_ipv4_addrs.*.rendered}"]
 }
 
-output "cfssl_endpoint" {
-  value = "${module.userdata.cfssl_endpoint}"
-}
-
 output "etcd_initial_cluster" {
   description = "The etcd initial cluster that can be used to join the cluster"
 

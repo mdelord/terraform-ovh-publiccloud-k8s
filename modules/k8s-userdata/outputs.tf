@@ -1,6 +1,6 @@
 output "rendered" {
   description = "The representation of the userdata according to `var.ignition_mode`"
-  value = ["${coalescelist(data.ignition_config.coreos.*.rendered, data.template_cloudinit_config.config.*.rendered)}"]
+  value = ["${data.ignition_config.coreos.*.rendered}"]
 }
 
 output "etcd_initial_cluster" {
@@ -11,9 +11,4 @@ output "etcd_initial_cluster" {
 output "etcd_endpoints" {
   description = "The etcd client endpoints that can be used to interact with the cluster"
   value = "${module.etcd.etcd_endpoints}"
-}
-
-output "cfssl_endpoint" {
-  description = "The cfssl endpoint"
-  value = "${module.cfssl.endpoint}"
 }
