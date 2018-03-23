@@ -106,7 +106,7 @@ module "userdata" {
 
 resource "openstack_compute_instance_v2" "multinet_k8s" {
   count              = "${var.associate_public_ipv4 && var.associate_private_ipv4 ? var.count : 0}"
-  name               = "${var.name}_${count.index}"
+  name               = "${var.name}-${count.index}"
   image_id           = "${element(coalescelist(data.openstack_images_image_v2.k8s.*.id, list(var.image_id)), 0)}"
   flavor_name        = "${var.flavor_name}"
   user_data          = "${element(module.userdata.rendered, count.index)}"
@@ -130,7 +130,7 @@ resource "openstack_compute_instance_v2" "multinet_k8s" {
 
 resource "openstack_compute_instance_v2" "singlenet_k8s" {
   count              = "${! (var.associate_public_ipv4 && var.associate_private_ipv4) ? var.count : 0}"
-  name               = "${var.name}_${count.index}"
+  name               = "${var.name}-${count.index}"
   image_id           = "${element(coalescelist(data.openstack_images_image_v2.k8s.*.id, list(var.image_id)), 0)}"
   flavor_name        = "${var.flavor_name}"
   user_data          = "${element(module.userdata.rendered, count.index)}"
