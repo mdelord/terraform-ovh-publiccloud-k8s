@@ -2,6 +2,35 @@ locals {
   network_route_tpl = "[Route]\nDestination=%s\nGatewayOnLink=yes\nRouteMetric=3\nScope=link\nProtocol=kernel"
 }
 
+data "ignition_systemd_unit" "hostname_metadata_service" {
+  name    = "hostname-metadata.service"
+  enabled = true
+  content = <<CONTENT
+[Unit]
+Description=Set hostname from platform metadata
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/coreos-metadata --provider=ec2 --hostname=/etc/hostname
+ExecStartPost=/bin/sh -c 'hostnamectl --transient set-hostname $(cat /etc/hostname)'
+
+[Install]
+WantedBy=network.target
+CONTENT
+}
+
+data "ignition_systemd_unit" "coreos-metadata-sshkeys-dropin" {
+  name = "coreos-metadata-sshkeys@.service"
+  enabled = true
+  dropin {
+    name = "10-openstack.conf"
+    content = <<CONTENT
+[Service]
+Environment=COREOS_METADATA_OPT_PROVIDER=--provider=ec2
+CONTENT
+  }
+}
+
 data "ignition_file" "cfssl-conf" {
   count      = "${var.count}"
   filesystem = "root"
@@ -93,6 +122,8 @@ data "ignition_config" "coreos" {
   users = ["${data.ignition_user.core.id}"]
 
   systemd = [
+    "${data.ignition_systemd_unit.hostname_metadata_service.id}",
+    "${data.ignition_systemd_unit.coreos-metadata-sshkeys-dropin.id}",
     # Added for k8s
     "${data.ignition_systemd_unit.docker_service.id}",
     "${data.ignition_systemd_unit.kubelet_service.id}",
@@ -113,7 +144,6 @@ data "ignition_config" "coreos" {
     "${var.master_mode && var.cfssl && var.cfssl_endpoint == "" && count.index == 0 ? data.ignition_file.cfssl-cakey.id : ""}",
     "${var.master_mode && var.cfssl && var.cfssl_endpoint == "" && count.index == 0 ? element(data.ignition_file.cfssl-conf.*.id, 0) : ""}",
     # Added for k8s
-    "${element(data.ignition_file.hostname.*.id, count.index)}",
     "${element(data.ignition_file.kubeconfig.*.id, count.index)}",
     "${data.ignition_file.cni-rbac.*.id}",
     "${data.ignition_file.cni-manifest.*.id}"
