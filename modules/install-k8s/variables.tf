@@ -35,12 +35,12 @@ variable "ssh_bastion_user" {
 
 variable "k8s_version" {
   description = "The version of k8s to install with the post installation script if `post_install_module` is set to true"
-  default     = "1.9.2"
+  default     = "1.9.6"
 }
 
 variable "calico_node_version" {
   description = "The version of calico_node to install with the post installation script if `post_install_module` is set to true"
-  default     = "2.6.7"
+  default     = "2.6.8"
 }
 
 variable "calico_cni_version" {
