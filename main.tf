@@ -65,7 +65,7 @@ resource "openstack_networking_port_v2" "port_k8s" {
 
 # create anti affinity groups of 3 nodes
 resource "openstack_compute_servergroup_v2" "k8s" {
-  count    = "${var.count > 0 ? 1 + var.count / 3 : 0}"
+  count    = "${var.count > 0 && var.antiaffinity ? (var.count % 3 != 0 ? 1 : 0) + var.count / 3 : 0}"
   name     = "${var.name}-${count.index}"
   policies = ["anti-affinity"]
 }
@@ -122,7 +122,7 @@ resource "openstack_compute_instance_v2" "multinet_k8s" {
   }
 
   scheduler_hints {
-    group = "${element(openstack_compute_servergroup_v2.k8s.*.id, count.index / 3 )}"
+    group = "${element(coalescelist(openstack_compute_servergroup_v2.k8s.*.id, list("")), count.index / 3 )}"
   }
 
   metadata = "${merge(map("k8s_master_mode", var.master_mode), var.metadata)}"
@@ -141,7 +141,7 @@ resource "openstack_compute_instance_v2" "singlenet_k8s" {
   }
 
   scheduler_hints {
-    group = "${element(openstack_compute_servergroup_v2.k8s.*.id, count.index / 3 )}"
+    group = "${element(coalescelist(openstack_compute_servergroup_v2.k8s.*.id, list("")), count.index / 3 )}"
   }
 
   metadata = "${merge(map("k8s_master_mode", var.master_mode), var.metadata)}"

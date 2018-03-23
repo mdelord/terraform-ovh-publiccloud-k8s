@@ -49,6 +49,11 @@ variable "count" {
   description = "Number of nodes"
 }
 
+variable "antiaffinity" {
+  description = "Determines if nodes have to be spawned within anti affinity groups of 3 nodes"
+  default     = false
+}
+
 variable "metadata" {
   description = "A map of metadata to add to all resources supporting it."
   default     = {}
