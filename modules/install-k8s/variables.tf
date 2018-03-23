@@ -75,15 +75,15 @@ variable "k8s_sha1sum_cni_plugins" {
 
 variable "k8s_sha1sum_kubelet" {
   description = "The sha1 checksum of the k8s binary kubelet to install with the post installation script if `post_install_module` is set to true"
-  default     = "b27e42094c102fa0e053b69916b754746904bc8e"
+  default     = "32b1234e68d4d576c3fe0b62e608e361e09408a1"
 }
 
 variable "k8s_sha1sum_kubectl" {
   description = "The sha1 checksum of the k8s binary kubectl to install with the post installation script if `post_install_module` is set to true"
-  default     = "144534762b792c18f8d93c809b60c42f0826dd03"
+  default     = "04d344ac9b2a6514f0d94c2df79073e42d6c1182"
 }
 
 variable "k8s_sha1sum_kubeadm" {
   description = "The sha1 checksum of the k8s binary kubeadm to install with the post installation script if `post_install_module` is set to true"
-  default     = "248e1229ccd48e7be1c33252cd83b2f23a16acc2"
+  default     = "3eba73297aac155bcebc9d006eb1ca0cf7ff86f0"
 }
