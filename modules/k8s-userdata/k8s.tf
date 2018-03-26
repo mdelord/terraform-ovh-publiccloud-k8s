@@ -1,14 +1,3 @@
-data "ignition_file" "hostname" {
-  count = "${var.ignition_mode ? var.count : 0 }"
-  path = "/etc/hostname"
-  filesystem = "root"
-  mode = 420
-  content {
-    #DNS-1123 subdomain must consist of lower case alphanumeric characters, '-' or '.'
-    content = "${replace(lower(var.name), "/[^0-9a-z.-]/", "-")}-${count.index}"
-  }
-}
-
 data "ignition_systemd_unit" "docker_service" {
   name = "docker.service"
   enabled = true
