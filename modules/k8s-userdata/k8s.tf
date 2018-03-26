@@ -61,7 +61,7 @@ networking:
   dnsDomain: ${var.datacenter}.${var.domain}
   serviceSubnet: ${var.service_cidr}
   podSubnet: ${var.pod_cidr}
-kubernetesVersion: 1.9.2
+kubernetesVersion: 1.9.6
 #DNS-1123 subdomain must consist of lower case alphanumeric characters, '-' or '.'
 nodeName: ${replace(lower(var.name), "/[^0-9a-z.-]/", "-")}-${count.index}
 authorizationModes:
