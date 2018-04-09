@@ -37,6 +37,10 @@ resource "null_resource" "post_install_k8s" {
   --sha1sum-kubectl ${var.k8s_sha1sum_kubectl}
 EOF
   }
+
+  provisioner "remote-exec" {
+    inline = "sudo systemctl start k8s-init kubelet"
+  }
 }
 
 output "install_ids" {

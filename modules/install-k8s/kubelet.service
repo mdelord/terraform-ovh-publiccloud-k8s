@@ -1,0 +1,39 @@
+[Unit]
+Description=kubelet: The Kubernetes Node Agent
+Documentation=http://kubernetes.io/docs/
+Requires=docker.service
+After=docker.service
+
+[Service]
+Environment=KUBELET_ADDRESS=0.0.0.0
+Environment=KUBELET_BOOTSTRAP_CONFIG=/etc/kubernetes/bootstrap-kubelet.conf
+Environment=KUBELET_CONFIG=/etc/kubernetes/kubelet.conf
+Environment=POD_MANIFEST_PATH=/etc/kubernetes/manifests
+Environment=CNI_CONF_DIR=/etc/cni/net.d
+Environment=CNI_BIN_DIR=/opt/cni/bin
+Environment=CLUSTER_DNS=10.3.0.10
+Environment=CLUSTER_DOMAIN=local
+Environment=AUTH_MODE=Webhook
+Environment=CLIENT_CA_FILE=/etc/kubernetes/pki/ca.crt
+
+ExecStart=/opt/k8s/bin/kubelet \
+  --address=${KUBELET_ADDRESS} \
+  --bootstrap-kubeconfig=${KUBELET_BOOTSTRAP_CONFIG} \
+  --kubeconfig=${KUBELET_CONFIG} \
+  --pod-manifest-path=${POD_MANIFEST_PATH} \
+  --allow-privileged=true \
+  --network-plugin=cni \
+  --cni-conf-dir=${CNI_CONF_DIR} \
+  --cni-bin-dir=${CNI_BIN_DIR} \
+  --cluster-dns=${CLUSTER_DNS} \
+  --cluster-domain=${CLUSTER_DOMAIN} \
+  --authorization-mode=${AUTH_MODE} \
+  --client-ca-file=${CLIENT_CA_FILE} \
+  --rotate-certificates=true
+
+Restart=always
+StartLimitInterval=0
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
