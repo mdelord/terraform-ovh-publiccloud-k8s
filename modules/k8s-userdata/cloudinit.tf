@@ -1,6 +1,7 @@
 locals {
-  ip_route_add_tpl = "- ip route add %s dev %s scope link metric 0"
-  eth_route_tpl    = "%s dev %s scope link metric 0"
+  ip_route_add_tpl   = "- ip route add %s dev %s scope link metric 0"
+  eth_route_tpl      = "%s dev %s scope link metric 0"
+  networkd_route_tpl = "[Route]\nDestination=%s\nGatewayOnLink=yes\nRouteMetric=3\nScope=link\nProtocol=kernel"
 }
 
 data "template_file" "cfssl_ca_files" {
@@ -18,23 +19,64 @@ data "template_file" "cfssl_ca_files" {
 TPL
 }
 
+data "template_file" "systemd_network_files" {
+  template = <<TPL
+- path: /etc/systemd/network/10-eth0.network
+  permissions: '0644'
+  content: |
+    [Match]
+    Name=eth0
+    [Network]
+    DHCP=ipv4
+    ${indent(4, format(local.networkd_route_tpl, var.host_cidr))}
+    [DHCP]
+    RouteMetric=2048
+- path: /etc/systemd/network/20-eth1.network
+  permissions: '0644'
+  content: |
+    [Match]
+    Name=eth1
+    [Network]
+    DHCP=ipv4
+    [DHCP]
+    RouteMetric=2048
+TPL
+}
+
+data "template_file" "systemd_dropins_files" {
+  template = <<TPL
+- path: /etc/systemd/system/k8s-init.service.d/00-terraform.conf
+  permissions: '0644'
+  content: |
+    ${indent(4, data.template_file.k8s_init_service.rendered)}
+- path: /etc/systemd/system/kubelet.service.d/00-terraform.conf
+  permissions: '0644'
+  content: |
+    ${indent(4, data.template_file.kubelet_service.rendered)}
+- path: /etc/systemd/system/etcd-get-certs.service.d/00-terraform.conf
+  permissions: '0644'
+  content: |
+    ${indent(4, data.template_file.etcd_get_certs_service.rendered)}
+TPL
+}
 
 data "template_file" "cfssl_conf" {
   template = <<TPL
 - path: /etc/sysconfig/cfssl.conf
   mode: 0644
   content: |
-      ${indent(6, module.cfssl.conf)}
+    ${indent(4, module.cfssl.conf)}
 TPL
 }
 
 data "template_file" "etcd_conf" {
   count = "${var.count}"
+
   template = <<TPL
-- path: /etc/sysconfig/cfssl.conf
+- path: /etc/sysconfig/etcd.conf
   mode: 0644
   content: |
-      ${indent(6, module.etcd.conf[count.index])}
+    ${indent(4, module.etcd.conf[count.index])}
 TPL
 }
 
@@ -47,30 +89,21 @@ TPL
 
 # Render a multi-part cloudinit config making use of the part
 # above, and other source files
-data "template_cloudinit_config" "config" {
-  count         = "${var.ignition_mode ? 0 : var.count}"
-  gzip          = true
-  base64_encode = true
+data "template_file" "config" {
+  count = "${var.count}"
 
-  part {
-    content_type = "text/cloud-config"
-
-    content = <<CLOUDCONFIG
+  template = <<CLOUDCONFIG
 #cloud-config
 ssh_authorized_keys:
   ${length(var.ssh_authorized_keys) > 0 ? indent(2, join("\n", formatlist("- %s", var.ssh_authorized_keys))) : ""}
 ## This route has to be added in order to reach other subnets of the network
-bootcmd:
-  ${indent(2, format(local.ip_route_add_tpl, var.host_cidr, "eth0"))}
-ca-certs:
-  trusted:
-    - ${var.cacert}
 write_files:
-  ${var.cfssl && var.cfssl_endpoint == "" && count.index == 0 ? indent(2, element(data.template_file.cfssl_files.*.rendered, count.index)) : ""}
-  ${var.etcd ? indent(2, element(data.template_file.etcd_conf.*.rendered, count.index)) : ""}
+  ${var.master_mode && var.cfssl && var.cfssl_endpoint == "" && count.index == 0 ? indent(2, element(data.template_file.cfssl_files.*.rendered, count.index)) : ""}
+  ${var.master_mode && var.etcd ? indent(2, element(data.template_file.etcd_conf.*.rendered, count.index)) : ""}
+  ${indent(2, data.template_file.systemd_dropins_files.rendered)}
+  ${indent(2, data.template_file.systemd_network_files.rendered)}
   - path: /etc/sysconfig/network-scripts/route-eth0
     content: |
       ${indent(6, format(local.eth_route_tpl, var.host_cidr, "eth0"))}
 CLOUDCONFIG
-  }
 }

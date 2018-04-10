@@ -38,7 +38,6 @@ module "k8s" {
   image_name             = "CoreOS Stable"
   subnet_ids             = ["${module.network.private_subnets[0]}"]
   flavor_name            = "${var.os_flavor_name}"
-  ignition_mode          = true
   ssh_user               = "core"
   ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
   ssh_bastion_host       = "${module.network.bastion_public_ip}"

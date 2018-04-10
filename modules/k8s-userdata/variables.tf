@@ -8,10 +8,6 @@ variable "count" {
   default     = 1
 }
 
-variable "ignition_mode" {
-  description = "Defines if main output is in ignition or cloudinit format"
-  default     = true
-}
 
 variable "name" {
   type        = "string"
