@@ -23,7 +23,6 @@ module "k8s" {
   etcd                      = true
   image_name                = "CoreOS Stable K8S"
   flavor_name               = "b2-7"
-  ignition_mode             = true
   security_group_ids        = ["${module.k8s_secgroups.master_group_id}", "${module.k8s_secgroups.worker_group_id}"]
   associate_public_ipv4     = true
   associate_private_ipv4    = false

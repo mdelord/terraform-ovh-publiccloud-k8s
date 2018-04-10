@@ -1,3 +1,4 @@
+cat <<EOF
 # Calico Roles
 # Pulled from https://docs.projectcalico.org/v2.5/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml
 kind: ClusterRole
@@ -112,3 +113,4 @@ subjects:
 - kind: ServiceAccount
   name: canal
   namespace: kube-system
+EOF

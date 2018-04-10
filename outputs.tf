@@ -12,7 +12,6 @@ output "cfssl_endpoint" {
 
 output "etcd_initial_cluster" {
   description = "The etcd initial cluster that can be used to join the cluster"
-
   value = "${module.userdata.etcd_initial_cluster}"
 }
 

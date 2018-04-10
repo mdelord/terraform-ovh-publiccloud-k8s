@@ -85,12 +85,9 @@ function create_k8s_install_paths {
   log_info "Creating install dirs for Kubernetes at $path"
   sudo mkdir -p "$path/bin"
   sudo echo "export PATH=\$PATH:$path/bin"  | sudo tee /etc/profile.d/k8s_path.sh > /dev/null
-  sudo cp $SCRIPT_DIR/k8s-init $path/k8s-init
-  sudo chmod +x $path/k8s-init
-  sudo mkdir -p /opt/kubeadm/
-  sudo cp $SCRIPT_DIR/kubeadm-init /opt/kubeadm/kubeadm-init
-  sudo chmod +x /opt/kubeadm/kubeadm-init
-
+  sudo chmod +x /etc/profile.d/k8s_path.sh
+  sudo cp $SCRIPT_DIR/{k8s-init,kubeadm-init,kubeadm_config.yaml.sh,cni-manifest.yaml.sh,cni-rbac.yaml.sh} "$path"
+  sudo chmod +x "$path"/{k8s-init,kubeadm-init,kubeadm_config.yaml.sh,cni-manifest.yaml.sh,cni-rbac.yaml.sh}
 }
 
 function check_sha1sum {
@@ -159,6 +156,20 @@ function pull_needed_image(){
     docker pull "gcr.io/google_containers/k8s-dns-sidecar-amd64:${kubedns_version}" >/dev/null 2>&1
     docker pull "gcr.io/google_containers/k8s-dns-kube-dns-amd64:${kubedns_version}" >/dev/null 2>&1
     docker pull "gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:${kubedns_version}" >/dev/null 2>&1
+}
+
+function setup_systemd {
+    local readonly username="$1"
+    sudo cp "$SCRIPT_DIR/kubelet.service" "/etc/systemd/system/"
+    sudo cp "$SCRIPT_DIR/k8s-init.service" "/etc/systemd/system/"
+
+    sudo systemctl enable kubelet.service k8s-init.service docker.service
+
+    # disable firewalld. TODO: make a proper setup for etcd
+    if systemctl list-unit-files --all | grep -q firewalld.service; then
+        sudo systemctl stop firewalld
+        sudo systemctl mask firewalld
+    fi
 }
 
 function install {
@@ -252,6 +263,7 @@ function install {
   install_binary kubelet "$k8s_version" "$sha1sum_kubelet" "$DEFAULT_INSTALL_PATH"
   install_binary kubeadm "$k8s_version" "$sha1sum_kubeadm" "$DEFAULT_INSTALL_PATH"
   pull_needed_image "$k8s_version" "$calico_node_version" "$calico_cni_version" "$flannel_version" "$kubedns_version" "$pause_version"
+  setup_systemd
 
   log_info "Kubernetes install complete!"
 }

@@ -49,7 +49,6 @@ module "k8s" {
   post_install_modules   = false
   image_name             = "CoreOS Stable K8s"
   flavor_name            = "${var.os_flavor_name}"
-  ignition_mode          = true
   security_group_ids     = ["${module.k8s_secgroups.master_group_id}", "${module.k8s_secgroups.worker_group_id}"]
   ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
   associate_public_ipv4  = true

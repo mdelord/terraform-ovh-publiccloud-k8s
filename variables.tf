@@ -141,11 +141,6 @@ variable "ssh_bastion_user" {
   default     = ""
 }
 
-variable "ignition_mode" {
-  description = "Set to true if os family supports ignition, such as CoreOS/Container Linux distribution"
-  default     = true
-}
-
 variable "associate_public_ipv4" {
   description = "Associate a public ipv4 with the k8s nodes"
   default     = false

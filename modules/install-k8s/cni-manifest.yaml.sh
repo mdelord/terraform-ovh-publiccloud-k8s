@@ -1,3 +1,4 @@
+cat <<EOF
 # Canal Version v2.6.7
 # https://docs.projectcalico.org/v2.6/releases#v2.6.7
 # This manifest includes the following component versions:
@@ -56,7 +57,7 @@ data:
   # Flannel network configuration. Mounted into the flannel container.
   net-conf.json: |
     {
-      "Network": "${pod_cidr}",
+      "Network": "${NETWORKING_POD_SUBNET:-10.2.0.0/16}",
       "Backend": {
         "Type": "vxlan"
       }
@@ -118,7 +119,7 @@ spec:
             # Cluster type to identify the deployment type
             - name: CLUSTER_TYPE
               value: "k8s,canal"
-            # Disable file logging so `kubectl logs` works.
+            # Disable file logging so "kubectl logs" works.
             - name: CALICO_DISABLE_FILE_LOGGING
               value: "true"
             # Period, in seconds, at which felix re-applies all iptables state
@@ -317,3 +318,4 @@ kind: ServiceAccount
 metadata:
   name: canal
   namespace: kube-system
+EOF

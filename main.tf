@@ -75,7 +75,6 @@ module "userdata" {
   count                = "${var.count}"
   master_mode          = "${var.master_mode}"
   name                 = "${var.name}"
-  ignition_mode        = "${var.ignition_mode}"
   domain               = "${var.domain}"
   datacenter           = "${var.datacenter}"
   region               = "${var.region}"

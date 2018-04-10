@@ -1,0 +1,31 @@
+[Unit]
+Description=Bootstrap a Kubernetes cluster with kubeadm
+Wants=etcd.service etcd-get-certs.service
+After=etcd.service etcd-get-certs.service
+ConditionPathExists=!/opt/k8s/init.done
+
+[Service]
+RemainAfterExit=true
+Restart=on-failure
+StartLimitInterval=0
+RestartSec=10
+Environment=MASTER_MODE=0
+Environment=WORKER_MODE=0
+Environment=ETCD_ENDPOINTS=https://127.0.0.1:2379
+Environment=API_ENDPOINT=127.0.0.1:6443
+Environment=BOOTSTRAP_TOKEN_KEY=k8s-boostrap-token
+Environment=PKI_KEY=k8s-pki
+Environment=LOCK=k8s-init-lock
+
+Environment=NETWORKING_DNS_DOMAIN=local
+Environment=NETWORKING_SERVICE_SUBNET=10.3.0.0/16
+Environment=NETWORKING_POD_SUBNET=10.2.0.0/16
+Environment=API_SERVER_CERT_SANS=127.0.0.1
+Environment=KUBERNETES_VERSION=1.9.6
+Environment=KUBEPROXY_CONFIG_MODE=iptables
+Environment=AUTHORIZATION_MODES=Node,RBAC
+
+ExecStart=/opt/k8s/k8s-init
+
+[Install]
+WantedBy=multi-user.target

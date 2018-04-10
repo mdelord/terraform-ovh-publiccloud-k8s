@@ -46,7 +46,7 @@ resource "openstack_networking_secgroup_rule_v2" "k8s-api" {
   security_group_id = "${module.k8s_secgroups.master_group_id}"
 }
 
-module "k8s_masters" {
+module "k8s" {
   source                 = "../.."
   region                 = "${var.os_region_name}"
   name                   = "${var.name}_master"
@@ -58,7 +58,6 @@ module "k8s_masters" {
   post_install_modules   = true
   image_name             = "CoreOS Stable"
   flavor_name            = "${var.os_flavor_name_masters}"
-  ignition_mode          = true
   ssh_user               = "core"
   ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
   security_group_ids     = ["${module.k8s_secgroups.master_group_id}"]
@@ -80,7 +79,6 @@ module "k8s_workers" {
   post_install_modules   = true
   image_name             = "CoreOS Stable"
   flavor_name            = "${var.os_flavor_name_workers}"
-  ignition_mode          = true
   ssh_user               = "core"
   ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
   security_group_ids     = ["${module.k8s_secgroups.worker_group_id}"]
