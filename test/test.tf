@@ -9,11 +9,12 @@ terraform {
 data "template_file" "test_script" {
   template = <<TPL
 #!/bin/bash
-ETCD_CMD="/opt/etcd/bin/etcdctl --ca-file /opt/etcd/certs/ca.pem --cert-file /opt/etcd/certs/cert.pem --key-file /opt/etcd/certs/cert-key.pem --endpoints https://localhost:2379"
+export ETCDCTL_API=3
+ETCD_CMD="/opt/k8s/bin/etcdctl --cacert /opt/etcd/certs/ca.pem --cert /opt/etcd/certs/cert.pem --key /opt/etcd/certs/cert-key.pem --endpoints https://localhost:2379"
 K8S_CMD="sudo /opt/k8s/bin/kubectl --kubeconfig /etc/kubernetes/admin.conf"
 
 # test etcd
-if [ $($ETCD_CMD member list | wc -l) == ${var.count} ] && $ETCD_CMD member list | grep -q "isLeader=true"; then
+if [ $($ETCD_CMD member list | grep started | wc -l) == ${local.test_master_count} ]; then
    echo "etcd is up" >&2
 else
    echo "etcd is not ready. retry later" >&2
@@ -21,7 +22,7 @@ else
 fi
 
 # test k8s cluster
-if [ $($K8S_CMD get nodes | grep master | grep -iw ready | wc -l) == ${var.count} ]; then
+if [ $($K8S_CMD get nodes | grep master | grep -iw ready | wc -l) == ${local.test_master_count} ]; then
    echo "k8s is up" >&2
 else
    echo "k8s is not ready. retry later" >&2
@@ -58,7 +59,7 @@ fi
 
 PODS=$($K8S_CMD get pods --field-selector=status.phase=Running -o json | jq -r '.items[].metadata.name')
 # test running pods
-if [ "$(echo $PODS | wc -w)" == ${var.count} ]; then
+if [ "$(echo $PODS | wc -w)" == ${local.test_worker_count} ]; then
    echo "test daemonset pods are up" >&2
 else
    echo "test daemonset pods arent ready. retry later" >&2

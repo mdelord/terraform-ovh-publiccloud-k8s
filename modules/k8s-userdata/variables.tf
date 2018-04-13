@@ -8,7 +8,6 @@ variable "count" {
   default     = 1
 }
 
-
 variable "name" {
   type        = "string"
   description = "Cluster name"
@@ -52,7 +51,7 @@ variable "etcd_initial_cluster" {
 
 variable "etcd_endpoints" {
   description = "etcd endpoints to call to query the etcd cluster"
-  default = "https://localhost:2379"
+  default = ""
 }
 
 variable "master_mode" {

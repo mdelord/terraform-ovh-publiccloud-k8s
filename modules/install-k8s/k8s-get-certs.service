@@ -1,0 +1,17 @@
+[Unit]
+Description=Retrieves etcd tls certs from configured cfssl server
+PartOf=k8s-init.service
+Before=k8s-init.service
+
+[Service]
+RemainAfterExit=yes
+Restart=on-failure
+RestartSec=5s
+
+Environment=DOMAIN=kubernetes.local
+Environment=CFSSL_ENDPOINT=https://127.0.0.1:8888
+Environment=ETCD_CA_FILE=/etc/kubernetes/etcd/ca.crt
+Environment=ETCD_CERT_FILE=/etc/kubernetes/etcd/client.crt
+Environment=ETCD_KEY_FILE=/etc/kubernetes/etcd/client.key
+
+ExecStart=/opt/k8s/k8s-get-certs

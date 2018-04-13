@@ -11,15 +11,21 @@ fi
 
 # Prepare etcdctl command
 export ETCDCTL_API=3
-ETCDCTL_COMMAND="/opt/etcd/bin/etcdctl --cacert /opt/etcd/certs/ca.pem --cert /opt/etcd/certs/cert.pem --key /opt/etcd/certs/cert-key.pem --endpoints $ETCD_ENDPOINTS"
+ETCDCTL_COMMAND="/opt/k8s/bin/etcdctl --cacert $ETCD_CA_FILE --cert $ETCD_CERT_FILE --key $ETCD_KEY_FILE --endpoints $ETCD_ENDPOINTS"
 
 # Acquire lock on kubeadm-init script if initializing a new master
 # Otherwise, run the script without locking
-echo "initializing the node" >&2
 if [ "$MASTER_MODE" == "1" ]; then
+    echo "initializing master mode" >&2
     # run kubeadm on master nodes with a lock as the first node will gen
     # the cluster pki certs
-    $ETCDCTL_COMMAND lock "$LOCK" /opt/k8s/kubeadm-init
+    if [ -z "$INIT_ETCD_LOCK" ]; then
+        echo "lock var is undefined. cannot proceed" >&2
+        exit 1
+    fi
+    echo "acquiring lock $INIT_ETCD_LOCK" >&2
+    $ETCDCTL_COMMAND lock "$INIT_ETCD_LOCK" /opt/k8s/kubeadm-init
+    echo "kubeadm init done, lock $INIT_ETCD_LOCK released" >&2
 
     # Untaint node if needed
     if [ "$WORKER_MODE" == "1" ]; then
@@ -39,6 +45,7 @@ if [ "$MASTER_MODE" == "1" ]; then
     /opt/k8s/bin/kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /etc/kubernetes/cni/cni-manifest.yaml
 
 else
+    echo "initializing worker mode" >&2
     exec /opt/k8s/kubeadm-init
 fi
 

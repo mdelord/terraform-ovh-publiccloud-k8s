@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 DIR=${1:-$(dirname $0)/../examples/public-cluster-cl}
 REGION=${2:-$OS_REGION_NAME}
@@ -12,8 +12,8 @@ OUTPUT_TEST="tf_test"
 WITH_BASTION=0
 
 test_tf(){
-    # timeout is not 60 seconds but 60 loops, each taking at least 1 sec
-    local timeout=60
+    # timeout is not 120 seconds but 120 loops, each taking at least 1 sec
+    local timeout=120
     local inc=0
     local res=1
 
@@ -38,6 +38,12 @@ else
 fi
 
 cp "$(dirname $0)/test.tf" "$DIR"
+
+if [ -f "$(dirname $0)/test_counts_$(basename $DIR).tf" ]; then
+   cp "$(dirname $0)/test_counts_$(basename $DIR).tf" "$DIR"
+else
+   cp "$(dirname $0)/test_counts.tf" "$DIR"
+fi
 
 sed -i -e s,%%TESTNAME%%,$TEST_NAME,g "$DIR"/test*.tf
 

@@ -1,7 +1,8 @@
 [Unit]
 Description=Bootstrap a Kubernetes cluster with kubeadm
-Wants=etcd.service etcd-get-certs.service
-After=etcd.service etcd-get-certs.service
+Wants=etcd.service
+Requires=k8s-get-certs.service
+After=etcd.service k8s-get-certs.service
 ConditionPathExists=!/opt/k8s/init.done
 
 [Service]
@@ -12,16 +13,19 @@ RestartSec=10
 Environment=MASTER_MODE=0
 Environment=WORKER_MODE=0
 Environment=ETCD_ENDPOINTS=https://127.0.0.1:2379
+Environment=ETCD_CA_FILE=/etc/kubernetes/etcd/ca.crt
+Environment=ETCD_CERT_FILE=/etc/kubernetes/etcd/client.crt
+Environment=ETCD_KEY_FILE=/etc/kubernetes/etcd/client.key
 Environment=API_ENDPOINT=127.0.0.1:6443
-Environment=BOOTSTRAP_TOKEN_KEY=k8s-boostrap-token
-Environment=PKI_KEY=k8s-pki
-Environment=LOCK=k8s-init-lock
+Environment=BOOTSTRAP_TOKEN_ETCD_KEY=k8s/admin/k8s-boostrap-token
+Environment=PKI_ETCD_KEY=k8s/admin/pki
+Environment=INIT_ETCD_LOCK=k8s/admin/k8s-init-lock
 
 Environment=NETWORKING_DNS_DOMAIN=local
 Environment=NETWORKING_SERVICE_SUBNET=10.3.0.0/16
 Environment=NETWORKING_POD_SUBNET=10.2.0.0/16
 Environment=API_SERVER_CERT_SANS=127.0.0.1
-Environment=KUBERNETES_VERSION=1.9.6
+Environment=KUBERNETES_VERSION=1.10.0
 Environment=KUBEPROXY_CONFIG_MODE=iptables
 Environment=AUTHORIZATION_MODES=Node,RBAC
 
