@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 DIR=${1:-$(dirname $0)/../examples/public-cluster-cl}
 REGION=${2:-$OS_REGION_NAME}
@@ -39,8 +39,8 @@ fi
 
 cp "$(dirname $0)/test.tf" "$DIR"
 
-if [ -f "$(dirname $0)/test_counts_${TEST_NAME}.tf"]; then
-   cp "$(dirname $0)/test_counts_${TEST_NAME}.tf" "$DIR"
+if [ -f "$(dirname $0)/test_counts_$(basename $DIR).tf" ]; then
+   cp "$(dirname $0)/test_counts_$(basename $DIR).tf" "$DIR"
 else
    cp "$(dirname $0)/test_counts.tf" "$DIR"
 fi

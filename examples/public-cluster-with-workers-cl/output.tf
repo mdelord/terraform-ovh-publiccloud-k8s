@@ -7,12 +7,12 @@ Your kubernetes cluster is up.
 Retrieve k8s configuration locally:
 
     $ mkdir -p ~/.kube/${var.name}
-    $ ssh core@${module.k8s_masters.public_ipv4_addrs[0]} sudo cat /etc/kubernetes/admin.conf > ~/.kube/${var.name}/config
+    $ ssh core@${module.k8s.public_ipv4_addrs[0]} sudo cat /etc/kubernetes/admin.conf > ~/.kube/${var.name}/config
     $ kubectl --kubeconfig ~/.kube/${var.name}/config get nodes
 
 You can also ssh into one of your master instances:
 
-    ${indent(4, join( "\n", formatlist("$ ssh core@%s", module.k8s_masters.public_ipv4_addrs)))}
+    ${indent(4, join( "\n", formatlist("$ ssh core@%s", module.k8s.public_ipv4_addrs)))}
 
 or worker nodes:
 

@@ -27,12 +27,12 @@ variable "name" {
   default     = "myk8s"
 }
 
-variable "masters_count" {
+variable "master_count" {
   description = "Number of master nodes in the k8s cluster"
   default     = 3
 }
 
-variable "workers_count" {
+variable "worker_count" {
   description = "Number of worker nodes in the k8s cluster"
   default     = 2
 }

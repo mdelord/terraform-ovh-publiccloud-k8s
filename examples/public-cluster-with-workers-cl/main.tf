@@ -50,7 +50,7 @@ module "k8s" {
   source                 = "../.."
   region                 = "${var.os_region_name}"
   name                   = "${var.name}_master"
-  count                  = "${var.masters_count}"
+  count                  = "${var.master_count}"
   master_mode            = true
   worker_mode            = false
   cfssl                  = true
@@ -69,13 +69,13 @@ module "k8s_workers" {
   source                 = "../.."
   region                 = "${var.os_region_name}"
   name                   = "${var.name}_worker"
-  count                  = "${var.workers_count}"
+  count                  = "${var.worker_count}"
   master_mode            = false
   worker_mode            = true
   cfssl                  = false
-  cfssl_endpoint         = "${module.k8s_masters.cfssl_endpoint}"
-  etcd                   = true
-  etcd_endpoints         = "${module.k8s_masters.etcd_endpoints}"
+  cfssl_endpoint         = "${module.k8s.cfssl_endpoint}"
+  etcd                   = false
+  etcd_endpoints         = "${module.k8s.etcd_endpoints}"
   post_install_modules   = true
   image_name             = "CoreOS Stable"
   flavor_name            = "${var.os_flavor_name_workers}"
@@ -84,5 +84,5 @@ module "k8s_workers" {
   security_group_ids     = ["${module.k8s_secgroups.worker_group_id}"]
   associate_public_ipv4  = true
   associate_private_ipv4 = false
-  api_endpoint           = "${module.k8s_masters.api_endpoint}"
+  api_endpoint           = "${module.k8s.api_endpoint}"
 }
