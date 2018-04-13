@@ -37,6 +37,15 @@ module "etcd" {
   ipv4_addrs           = ["${var.ipv4_addrs}"]
 }
 
+data "template_file" "k8s_get_certs_service" {
+  count = "${var.count}"
+  template = <<TPL
+[Service]
+Environment=DOMAIN=${var.datacenter}.${var.domain}
+Environment=CFSSL_ENDPOINT=${var.cfssl_endpoint == "" ? module.cfssl.endpoint : var.cfssl_endpoint}
+TPL
+}
+
 data "template_file" "kubelet_service" {
   template = <<TPL
 [Service]
@@ -54,16 +63,9 @@ Environment=NETWORKING_POD_SUBNET=${var.pod_cidr}
 Environment=API_SERVER_CERT_SANS=${join(",", var.ipv4_addrs)}
 Environment=MASTER_MODE=${var.master_mode}
 Environment=WORKER_MODE=${var.worker_mode}
-Environment=ETCD_ENDPOINTS=${module.etcd.etcd_endpoints}
+Environment=ETCD_ENDPOINTS=${join(",", compact(list(var.etcd_endpoints, (var.etcd? module.etcd.etcd_endpoints: ""))))}
 Environment=API_ENDPOINT=${var.api_endpoint}
 Environment=KUBEPROXY_CONFIG_MODE=iptables
 Environment=AUTHORIZATION_MODES=Node,RBAC
-TPL
-}
-
-data "template_file" "etcd_get_certs_service" {
-template = <<TPL
-[Service]
-Environment=CFSSL_ENDPOINT=${var.cfssl_endpoint == "" ? module.cfssl.endpoint : var.cfssl_endpoint}
 TPL
 }

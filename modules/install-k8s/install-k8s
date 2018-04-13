@@ -8,6 +8,20 @@ readonly DEFAULT_INSTALL_PATH="/opt/k8s"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_NAME="$(basename "$0")"
 
+readonly DEFAULT_K8S_VERSION="1.10.0"
+readonly DEFAULT_CALICO_NODE_VERSION="2.6.8"
+readonly DEFAULT_CALICO_CNI_VERSION="1.11.4"
+readonly DEFAULT_FLANNEL_VERSION="0.10.0"
+readonly DEFAULT_KUBEDNS_VERSION="1.14.7"
+readonly DEFAULT_PAUSE_VERSION="3.0"
+readonly DEFAULT_ETCD_VERSION="3.3.1"
+readonly DEFAULT_K8S_CNI_PLUGINS_VERSION="0.7.0"
+readonly DEFAULT_K8S_SHA1SUM_CNI_PLUGINS="379c54de9c973f3a5323ae44ce664ac1175eede2"
+readonly DEFAULT_K8S_SHA1SUM_KUBELET="2b2c2214f2aec6c7b1f78ffbd8d8f11364dfe155"
+readonly DEFAULT_K8S_SHA1SUM_KUBECTL="7a17e4f1b7f084b49771467ed16859bc46508eae"
+readonly DEFAULT_K8S_SHA1SUM_KUBEADM="ba8ba627c1b3eb576835098ce41c1c9895bbbcee"
+readonly DEFAULT_SHA256SUM_ETCD="dc6d74e364ece87c34c86a997b90016ab6ea8845fd13fdf8c520afdf796b000d"
+
 function print_usage {
   echo
   echo "Usage: install-k8s [OPTIONS]"
@@ -86,8 +100,8 @@ function create_k8s_install_paths {
   sudo mkdir -p "$path/bin"
   sudo echo "export PATH=\$PATH:$path/bin"  | sudo tee /etc/profile.d/k8s_path.sh > /dev/null
   sudo chmod +x /etc/profile.d/k8s_path.sh
-  sudo cp $SCRIPT_DIR/{k8s-init,kubeadm-init,kubeadm_config.yaml.sh,cni-manifest.yaml.sh,cni-rbac.yaml.sh} "$path"
-  sudo chmod +x "$path"/{k8s-init,kubeadm-init,kubeadm_config.yaml.sh,cni-manifest.yaml.sh,cni-rbac.yaml.sh}
+  sudo cp $SCRIPT_DIR/{k8s-init,k8s-get-certs,kubeadm-init,kubeadm_config.yaml.sh,cni-manifest.yaml.sh,cni-rbac.yaml.sh} "$path"
+  sudo chmod +x "$path"/{k8s-init,k8s-get-certs,kubeadm-init,kubeadm_config.yaml.sh,cni-manifest.yaml.sh,cni-rbac.yaml.sh}
 }
 
 function check_sha1sum {
@@ -132,6 +146,29 @@ function install_binary {
   sudo chmod +x "$download_path"
 }
 
+function install_etcdctl {
+  local readonly version="$1"
+  local readonly sha256sum="$2"
+  local readonly path="$3"
+
+  local readonly url="https://github.com/coreos/etcd/releases/download/v${version}/etcd-v${version}-linux-amd64.tar.gz"
+  local readonly download_path="/tmp/etcd-v${version}-linux_amd64.tar.gz"
+  local readonly bin_dir="$path/bin"
+
+  log_info "Downloading Etcd $version from $url to $download_path"
+  curl -L -o "$download_path" "$url"
+  if [ "$sha256sum" != "$(sha256sum "$download_path" | awk '{print $1}')" ]; then
+      log_error "dl binary checksum error $sha256sum != $(sha256sum "$download_path" | awk '{print $1}')"
+      exit 1
+  else
+      log_info "Extracting etcdctl binaries to $bin_dir/"
+      sudo tar -xzf "${download_path}" --strip=1 -C "${bin_dir}" "etcd-v${version}-linux-amd64"/etcdctl
+  fi
+
+  sudo chmod a+x "$bin_dir/etcdctl"
+}
+
+
 function pull_needed_image(){
     local readonly k8s_version="$1"
     local readonly calico_node_version="$2"
@@ -162,6 +199,7 @@ function setup_systemd {
     local readonly username="$1"
     sudo cp "$SCRIPT_DIR/kubelet.service" "/etc/systemd/system/"
     sudo cp "$SCRIPT_DIR/k8s-init.service" "/etc/systemd/system/"
+    sudo cp "$SCRIPT_DIR/k8s-get-certs.service" "/etc/systemd/system/"
 
     sudo systemctl enable kubelet.service k8s-init.service docker.service
 
@@ -173,12 +211,20 @@ function setup_systemd {
 }
 
 function install {
-  local k8s_version=""
-  local calico_node_version=""
-  local calico_cni_version=""
-  local flannel_version=""
-  local kubedns_version=""
-  local pause_version=""
+  local k8s_version=$DEFAULT_K8S_VERSION
+  local calico_node_version=$DEFAULT_CALICO_NODE_VERSION
+  local calico_cni_version=$DEFAULT_CALICO_CNI_VERSION
+  local flannel_version=$DEFAULT_FLANNEL_VERSION
+  local kubedns_version=$DEFAULT_KUBEDNS_VERSION
+  local pause_version=$DEFAULT_PAUSE_VERSION
+  local etcd_version=$DEFAULT_ETCD_VERSION
+  local cni_plugins_version=$DEFAULT_K8S_CNI_PLUGINS_VERSION
+  local sha1sum_cni_plugins=$DEFAULT_K8S_SHA1SUM_CNI_PLUGINS
+  local sha1sum_kubelet=$DEFAULT_K8S_SHA1SUM_KUBELET
+  local sha1sum_kubectl=$DEFAULT_K8S_SHA1SUM_KUBECTL
+  local sha1sum_kubeadm=$DEFAULT_K8S_SHA1SUM_KUBEADM
+  local etcd_version=$DEFAULT_ETCD_VERSION
+  local sha256sum_etcd=$DEFAULT_SHA256SUM_ETCD
 
   while [[ $# > 0 ]]; do
     local key="$1"
@@ -225,7 +271,15 @@ function install {
         shift
         ;;
       --sha1sum-kubeadm)
-        sha1sum_kubeadm="$2"
+          sha1sum_kubeadm="$2"
+          shift
+          ;;
+      --etcd-version)
+          etcd_version="$2"
+          shift
+          ;;
+      --sha256sum-etcd)
+        sha256sum_etcd="$2"
         shift
         ;;
       --help)
@@ -262,6 +316,8 @@ function install {
   install_binary kubectl "$k8s_version" "$sha1sum_kubectl" "$DEFAULT_INSTALL_PATH"
   install_binary kubelet "$k8s_version" "$sha1sum_kubelet" "$DEFAULT_INSTALL_PATH"
   install_binary kubeadm "$k8s_version" "$sha1sum_kubeadm" "$DEFAULT_INSTALL_PATH"
+  install_etcdctl "$etcd_version" "$sha256sum_etcd" "$DEFAULT_INSTALL_PATH"
+
   pull_needed_image "$k8s_version" "$calico_node_version" "$calico_cni_version" "$flannel_version" "$kubedns_version" "$pause_version"
   setup_systemd
 

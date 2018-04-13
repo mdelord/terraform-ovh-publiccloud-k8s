@@ -44,6 +44,7 @@ TPL
 }
 
 data "template_file" "systemd_dropins_files" {
+  count = "${var.count}"
   template = <<TPL
 - path: /etc/systemd/system/k8s-init.service.d/00-terraform.conf
   permissions: '0644'
@@ -53,10 +54,10 @@ data "template_file" "systemd_dropins_files" {
   permissions: '0644'
   content: |
     ${indent(4, data.template_file.kubelet_service.rendered)}
-- path: /etc/systemd/system/etcd-get-certs.service.d/00-terraform.conf
+- path: /etc/systemd/system/k8s-get-certs.service.d/00-terraform.conf
   permissions: '0644'
   content: |
-    ${indent(4, data.template_file.etcd_get_certs_service.rendered)}
+    ${indent(4, element(data.template_file.k8s_get_certs_service.*.rendered, count.index))}
 TPL
 }
 
@@ -100,7 +101,7 @@ ssh_authorized_keys:
 write_files:
   ${var.master_mode && var.cfssl && var.cfssl_endpoint == "" && count.index == 0 ? indent(2, element(data.template_file.cfssl_files.*.rendered, count.index)) : ""}
   ${var.master_mode && var.etcd ? indent(2, element(data.template_file.etcd_conf.*.rendered, count.index)) : ""}
-  ${indent(2, data.template_file.systemd_dropins_files.rendered)}
+  ${indent(2, element(data.template_file.systemd_dropins_files.*.rendered, count.index))}
   ${indent(2, data.template_file.systemd_network_files.rendered)}
   - path: /etc/sysconfig/network-scripts/route-eth0
     content: |

@@ -1,0 +1,56 @@
+#!/bin/bash
+# shellcheck source=/dev/null
+# This scripts gets all tls certs required for k8s. These can be external CA, etcd tls keypairs, ...
+# As by kubeadm 1.10.0, generating tls certs for k8s internals is not so relevant.
+# Externalizing a CA is useful when you don't want to share the private keys on all nodes. But
+# kubeadm requires at least the front proxy ca key and the service account private key on all nodes.
+
+function get_etcd_ca(){
+    # retrieve CA from cfssl server
+    curl -k --fail --silent -XPOST -d '{}' "$CFSSL_ENDPOINT/api/v1/cfssl/info" | jq -r '.result.certificate' > "$ETCD_CA_FILE"
+}
+
+function get_etcd_cert(){
+    ca=${1}
+    cert=${2}
+    key=${3}
+    csr=${4}
+    purpose=${5}
+
+    # generating new tls certs if there's no certs or existing certs are invalid or older than one hour."
+    if [ ! -f "${cert}" ] || find "${cert}" -mmin "+60" | egrep '*' \
+           || ! openssl verify -purpose "${purpose}" -CAfile "${ca}" "${cert}"; then
+        echo "generating new certs (either too old, no existent or invalid)" >&2
+        certs_json=$(echo "$csr" | curl --cacert "${ca}" --connect-timeout 1 --silent --fail -d @- \
+                                        "${CFSSL_ENDPOINT}/api/v1/cfssl/newcert" 2>/dev/null)
+
+        if echo "$certs_json" | jq -r '.result.certificate' | openssl verify -purpose "$purpose" -CAfile "${ca}" 2>/dev/null; then \
+            # generating files in temp dir before copying it because a watcher on the target directory may interrupt the current process
+            certs_dir_temp=$(mktemp -d)
+            echo "$certs_json" | jq -r '.result.certificate' > "${certs_dir_temp}"/"$(basename "$cert")"
+            echo "$certs_json" | jq -r '.result.private_key' > "${certs_dir_temp}"/"$(basename "$key")"
+            mv "${certs_dir_temp}"/"$(basename "$cert")" "${certs_dir_temp}"/"$(basename "$key")" "$(dirname "$cert")"/ && rmdir "${certs_dir_temp}"
+        else
+            echo "error while generating cert. exiting." >&2
+            return 1
+        fi
+    else
+        echo "cert is already here and valid" >&2
+    fi
+}
+
+# creating directories
+mkdir -p "$(dirname $ETCD_CA_FILE)" \
+      "$(dirname $ETCD_CERT_FILE)"\
+      "$(dirname $ETCD_KEY_FILE)"
+
+if ! get_etcd_ca; then
+    echo "unable to retrieve ca file from cfssl server" >&2
+    exit 1
+fi
+
+ETCD_CSR='{ "request": {"CN": "'$(hostname)'.'${DOMAIN}'" },  "profile": "client"}'
+if ! get_etcd_cert "${ETCD_CA_FILE}" "$ETCD_CERT_FILE" "$ETCD_KEY_FILE" "$ETCD_CSR" sslclient; then
+    echo "unable to gen etcd cert from cfssl server" >&2
+    exit 1
+fi
