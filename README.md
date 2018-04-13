@@ -1,5 +1,5 @@
-# Kubernetes OVH Public Cloud Module
-
+Kubernetes OVH Public Cloud Module  [![Build Status](https://travis-ci.org/ovh/terraform-ovh-publiccloud-k8s.svg)](https://travis-ci.org/ovh/terraform-ovh-publiccloud-k8s)
+=========
 This repo contains a Module for how to deploy a [Kubernetes](https://kubernetes.io/) cluster on [OVH Public Cloud](https://ovhcloud.com/) using [Terraform](https://www.terraform.io/). Kubernetes is an open-source system for automating deployment, scaling, and management of containerized applications.
 
 # Usage
