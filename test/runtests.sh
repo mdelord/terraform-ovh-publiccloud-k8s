@@ -1,7 +1,7 @@
 #!/bin/bash
 
 REGIONS=${1:-$OS_REGION_NAME}
-DIRS=(public-cluster-cl private-cluster-cl)
+DIRS=(public-cluster-cl private-cluster-cl public-cluster-with-workers-cl)
 
 if [ ! -f "$SSH_AUTH_SOCK" ]; then
     eval $(ssh-agent) && ssh-add ${TEST_SSH_PRIVATE_KEY:-$HOME/.ssh/id_rsa}
