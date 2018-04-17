@@ -21,7 +21,7 @@ before_install:
 - echo $GPG_PASS > .gpg.passphrase
 - sudo apt-get -qq update
 - sudo apt-get install -y jq
-- sudo pip install python-openstackclient swift
+- sudo pip install python-openstackclient python-swiftclient
 - mkdir -p ~/bin
 - curl -sLo terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 - unzip terraform.zip
