@@ -1,82 +1,93 @@
 {
-  "min_packer_version": "0.12.0",
-  "variables": {
-    "module_cfssl_version": "v0.1.2",
-    "module_etcd_version": "v0.1.0",
-    "ssh_username": "core",
-    "source_image_name": "CoreOS Stable",
-    "identity_endpoint": "{{env `OS_AUTH_URL`}}",
-    "region": "{{env `OS_REGION_NAME`}}",
-    "ext_net_id": "",
-    "cfssl_version": "R1.2",
-    "cfssl_sha256sum": "eb34ab2179e0b67c29fd55f52422a94fe751527b06a403a79325fed7cf0145bd",
-    "cfssl_install_dir": "install-cfssl-0.1.1/terraform-ovh-publiccloud-cfssl-0.1.1/modules/install-cfssl",
-    "etcd_version": "3.3.0",
-    "etcd_sha256sum": "d91efb17ab0813039e24863a1af154b153d4b1a009181d6faa18e8ab681676dc",
-    "etcd_install_dir": "install-etcd-0.1.1/terraform-ovh-publiccloud-cfssl-0.1.1/modules/install-cfssl",
-    "k8s_version": "1.9.2",
-    "k8s_calico_node_version": "2.6.7",
-    "k8s_calico_cni_version": "1.11.2",
-    "k8s_flannel_version": "0.9.1",
-    "k8s_kubedns_version": "1.14.7",
-    "k8s_pause_version": "3.0",
-    "k8s_cni_plugins_version": "0.7.0",
-    "k8s_sha1sum_cni_plugins": "379c54de9c973f3a5323ae44ce664ac1175eede2",
-    "k8s_sha1sum_kubelet": "b27e42094c102fa0e053b69916b754746904bc8e",
-    "k8s_sha1sum_kubectl": "144534762b792c18f8d93c809b60c42f0826dd03",
-    "k8s_sha1sum_kubeadm": "248e1229ccd48e7be1c33252cd83b2f23a16acc2"
-  },
-  "builders": [
-    {
-      "type": "openstack",
-      "identity_endpoint": "{{user `identity_endpoint`}}",
-      "region": "{{user `region`}}",
-      "ssh_username": "{{user `ssh_username`}}",
-      "image_name": "{{user `source_image_name`}} K8s",
-      "source_image_name": "{{user `source_image_name`}}",
-      "ssh_ip_version": "4",
-      "flavor": "s1-2",
-      "networks": [
-        "{{user `ext_net_id`}}"
-      ]
-    }
-  ],
-  "provisioners": [
-    {
-      "type": "shell-local",
-      "command": "rm -rf {{template_dir}}/tmp-module; mkdir {{template_dir}}/tmp-module"
+    "min_packer_version": "0.12.0",
+    "variables": {
+        "identity_endpoint": "{{env `OS_AUTH_URL`}}",
+        "region": "{{env `OS_REGION_NAME`}}",
+        "module_cfssl_version": "0.1.3",
+        "module_cfssl_sha256sum": "5051401353ba9eaffe3871f5e4ebd2f54915204bbec4d9b6735eebc735dc6879",
+        "module_etcd_version": "0.1.2",
+        "module_etcd_sha256sum": "7f6d7a613162d4c9456854e76a098a4cc6dd13e2cf88cba69666e33126ac19a2",
+        "ext_net_id": "",
+        "version": "latest",
+        "commit": ""
     },
-    {
-      "type": "shell-local",
-      "command": "git clone --branch {{user `module_cfssl_version`}} https://github.com/ovh/terraform-ovh-publiccloud-cfssl.git {{template_dir}}/tmp-module/terraform-ovh-cfssl"
-    },
-    {
-      "type": "shell-local",
-      "command": "git clone --branch {{user `module_etcd_version`}} https://github.com/ovh/terraform-ovh-publiccloud-etcd.git {{template_dir}}/tmp-module/terraform-ovh-etcd"
-    },
-    {
-      "type": "file",
-      "source": "{{template_dir}}/../../modules",
-      "destination": "/tmp/current-module"
-    },
-    {
-      "type": "file",
-      "source": "{{template_dir}}",
-      "destination": "/tmp/tmp-modules"
-    },
-    {
-      "type": "shell",
-      "inline": [
-        "/tmp/tmp-modules/tmp-module/terraform-ovh-cfssl/modules/install-cfssl/install-cfssl --version {{user `cfssl_version`}} --sha256sum {{user `cfssl_sha256sum`}}",
-        "/tmp/tmp-modules/tmp-module/terraform-ovh-etcd/modules/install-etcd/install-etcd --version {{user `etcd_version`}} --sha256sum {{user `etcd_sha256sum`}}",
-        "/tmp/current-module/install-k8s/install-k8s --k8s-version  {{user `k8s_version`}} --calico-node-version  {{user `k8s_calico_node_version`}} --calico-cni-version  {{user `k8s_calico_cni_version`}} --flannel-version {{user `k8s_flannel_version`}} --kubedns-version  {{user `k8s_kubedns_version`}} --pause-version {{user `k8s_pause_version`}} --cni-plugins-version {{user `k8s_cni_plugins_version`}} --sha1sum-cni-plugins  {{user `k8s_sha1sum_cni_plugins`}} --sha1sum-kubeadm  {{user `k8s_sha1sum_kubeadm`}} --sha1sum-kubelet  {{user `k8s_sha1sum_kubelet`}} --sha1sum-kubectl  {{user `k8s_sha1sum_kubectl`}}",
-        "sudo rm -Rf /var/lib/cloud/* /tmp/* /etc/machine-id",
-        "if [ -d /boot/coreos ]; then sudo touch /boot/coreos/first_boot; fi"
-      ]
-    },
-    {
-      "type": "shell-local",
-      "command": "rm -rf {{template_dir}}/tmp-module"
-    }
-  ]
+    "builders": [
+        {
+            "name": "coreos",
+            "type": "openstack",
+            "identity_endpoint": "{{user `identity_endpoint`}}",
+            "region": "{{user `region`}}",
+            "ssh_username": "core",
+            "image_name": "CoreOS Stable K8s",
+            "source_image_name": "CoreOS Stable",
+            "ssh_ip_version": "4",
+            "flavor": "s1-2",
+            "networks": [
+                "{{user `ext_net_id`}}"
+            ],
+            "metadata": {
+                "version": "{{user `version`}}",
+                "commit": "{{user `commit`}}",
+                "community": "ovh"
+            }
+        },
+        {
+            "name": "centos7",
+            "type": "openstack",
+            "identity_endpoint": "{{user `identity_endpoint`}}",
+            "region": "{{user `region`}}",
+            "ssh_username": "centos",
+            "image_name": "Centos 7 K8s",
+            "source_image_name": "Centos 7",
+            "ssh_ip_version": "4",
+            "flavor": "s1-2",
+            "networks": [
+                "{{user `ext_net_id`}}"
+            ],
+            "metadata": {
+                "version": "{{user `version`}}",
+                "commit": "{{user `commit`}}",
+                "community": "ovh"
+            }
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "file",
+            "source": "{{template_dir}}/../../modules",
+            "destination": "/tmp"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "/tmp/modules/install-k8s/install-k8s"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "echo '{{user `module_cfssl_sha256sum`}} -' > /tmp/modules/cfssl.sum.txt",
+                "curl -Lfs https://github.com/ovh/terraform-ovh-publiccloud-cfssl/archive/v{{user `module_cfssl_version`}}.tar.gz | tee /tmp/modules/cfssl.tar.gz | sha256sum -c /tmp/modules/cfssl.sum.txt",
+                "tar -xzf /tmp/modules/cfssl.tar.gz --strip=2 -C /tmp/modules terraform-ovh-publiccloud-cfssl-{{user `module_cfssl_version`}}/modules/install-cfssl",
+                "/tmp/modules/install-cfssl/install-cfssl"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "echo '{{user `module_etcd_sha256sum`}} -' > /tmp/modules/etcd.sum.txt",
+                "curl -Lfs https://github.com/ovh/terraform-ovh-publiccloud-etcd/archive/v{{user `module_etcd_version`}}.tar.gz | tee /tmp/modules/etcd.tar.gz | sha256sum -c /tmp/modules/etcd.sum.txt",
+                "tar -xzf /tmp/modules/etcd.tar.gz --strip=2 -C /tmp/modules terraform-ovh-publiccloud-etcd-{{user `module_etcd_version`}}/modules/install-etcd",
+                "/tmp/modules/install-etcd/install-etcd"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "echo cleaning server files > /dev/stderr",
+                "sudo rm -Rf /var/lib/cloud/* /tmp/modules /etc/machine-id /etc/ssh/ssh_host*key*",
+                "if [ -d /boot/coreos ]; then sudo touch /boot/coreos/first_boot; fi"
+            ]
+        }
+    ]
 }

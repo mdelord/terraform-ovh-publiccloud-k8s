@@ -37,3 +37,14 @@ terraform_ssh_key*
 
 # ignore tests files copied in example directories
 examples/**/test*.tf
+
+# ignore dl terraform-ovh-commons
+.catalog.json
+openstack_functions.sh
+
+# ignore tmp directories
+tmp.*
+
+# ignore gpg keys
+.ovhtravis.gpg
+.gpg.passphrase
