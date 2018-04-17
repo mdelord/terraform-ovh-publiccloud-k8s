@@ -1,8 +1,10 @@
 dist: trusty
-sudo: false
+language: python
+sudo: required
 env:
   global:
   - TERRAFORM_VERSION=0.11.6
+  - PACKER_VERSION=1.2.2
   - OS_AUTH_URL=https://auth.cloud.ovh.net/v2.0
   - OS_ENDPOINT_TYPE=publicURL
   - OS_IDENTITY_API_VERSION=2
@@ -11,19 +13,29 @@ env:
   - secure: Z5Wp9nVcUEc7E+DKPCrrpclkErP6SfQcDhEm2OCoRlhkWL/lu8dkMH/PRVaVywOwoMk0x1A0gIAZ5WcJThqSw/e8h02cSS8Q61LrcHwEQ0vXB9zFl5RW3slMDOgKvPQ9pnXOBin2M+8T7uOTacLC2oWJCtdp2Ewz0IjoBqMQmrKrRKEWCfGBA4N+CAXihsINsOmHFflLn648pRMe0EpUDN8jG7FhWANTYKiMHKPkD6YqPTLu3WIGXTUQGPca7DvNZzJAO/+c5KJIpSWON8tOcKAf0lj2W1aBcI0yIzZ5qC/dDJDSBwPI+E0THyMhQVJTKbgbKtwiihuzSErl9KYDu1xnxNXA2d5uUTWBb10IVXFxgPZvE7a6mx24/NBy7XklvsjNEVu2Zu03l9cGxR2LBmM8X86U4xEiX5pt2Dtu2KrJCdcULkQA2Ku//ONJJt5FDgstl3bLvZR6WQrm5Ij04qoNaJuySblv1EMShkH9Ys0uIw9rwdZaF20HWEGVAzAMPG4F50s3IG5kUkxvrkplvp5HiMPW2aG+c4H1kgCJKp8RSdbUNequT30bwjqvddyjmigdqyAvY1BCXx/hzpNPGlfx5iAtoxynaQ9bBoy8j7+ulQBDvTaUH8sVQ/ER/HYF5yvj954XfunYig0DyGaUDJFFcLu5KyFxaY8m3ON6iNs=
   - secure: W+mH8sZZX0bOEWlLvem5E/t1+iSCF7tXYkP8DTtVg7XYZ+VF0rZQUTvIbnxq2dYaSGKmw+Y0Ji5ec+bW6tI9w5aEY5TlsUMp8Q6MTRZwIZgfjaon6Hq5xmDLmpDUtJ30pOhYwpFicp1OC6S6ZRORDbj81RE5oOyVKOohdbLTaIdwGbgJgPU8yLYdjZ4AFOWqmUoQ4YLsITonW1KYQYuue4UxkaEM8CtNOBPcOCSFH80+vYePLAz9w26S6FZJKKt9WNmV6KtvU72g1D45OKaQ5jmkdifOHojqZF7B0M/wRpJOesw2tHPw4lQeGlPO59TM/KMaNyhBHH5qyTD7cWLH76BSrEa3uAxff64HYlup8XBtChViuEb656XKWd1YcK2LkXGKbvdezBZ+nkaAuKzu/ZgnJDTaGqiaGHuvzmlHW7evvVP5wmIZ/7ur7r1O6/fOm4BwQdc2H447oAe9VDSOS3iKHCYIngaroa064/jj2e9BS3kA/hzYraiSKIfiptdtmtDA8EhvY8Z953IiNKO0Iufaoa+HBzpx7VUiilgDU50HC6F1qef2AFnG4aoPlEIos1f1hx7EP/WnhrvLaxAftiJWKtD3QjXidmSfsQ2Yvr2LFV8C/NxsZVXmbqnJf/YTuOcWQKq91R7dOsvODkTK8oCzGil/qFgtd0hBIohRWqo=
   - secure: tHAqeHEyy2+PpTJr8vMTZ0dXwO1AW7JdG/gtUWdlPlaijr+DiEIb74gk+7AZE49thf08eQk1ZlrdIiVUOnfuUJexx8eMHpl81Sm4heMz41QCj7ZZWkEqA7NoS1CS/9tTAYI5Mvk6IlJE00Xtw5t5xrEz8BLC9YPjHEtSw7MwsUUDERBC7U8vqlnl+bFfpdcrs3wtm+H+4vmTmcOcGNqi4ZU3SbLAnqQWR/654gbPCbuyeFoT0TGBVCPFiEXzFZlvnSRYH72zNN2WFNx/t9Ak7pSgoH7NeYKSZ0x5chIvIJSBtidteEMVEt9MuKYKj58c7ZDmvlEHBx4+TGfWxcv7v/YApLdQQ9Y8d96sAocZ9hdT1NAaE2w9q25FeUOyxL3jehhHTlLM2tgMJhztOzKaiGY4HkClrulVmzbOl0KZ11GmqXtWF8/nxQYycmzUFf2DqPbquw41CCaMqkp5rqWkFfxnufqucHFrqu2oAukbos881FUsBYwXiC6clYGqI2zEXvkcHlvB6K19WIliSFpEXjROkauUUYbHKaTbwhznvsZPiuNPwN3f+kXY8Ytl4IqqmqoBQVCvIsNxm98AI5C7BxC3oo1jegVZyQQ9sCnBahi3vEvS0WufdMimuIcuyUYUXaOYjCgpn/U3MxBDMUpO36+TVSpYsor4rnRgVtqnMHY=
-
+  - secure: NWZ1GkR8BYFFNdW1LsT3Mq32EQuH9poUiTxYFiS5FeH2UlS52DFE2Q4792uMSNNNhEWH+Jb3i5DjZb4fyD2Dhem271o9iBySEJnp2fMfpTSiR3REJWGnnsHrMJv3isjMkvxQ1VozF0dRWSxXWjyeYgDOmyI24Y3HJ8BQgserjxgf4kVOhtsMK86EYcnIB9EpuadYJtrtFZJXUp4wpB8GuKTvkEM8soNWdWTtRv5gY0c7A+//umFIT5s5hwd2SHNNoDRvMswxEpNUHYdN8lIM391D3RhQ0ggRbjm7M+n+6ob67mKTErZuvNsYKh9x5mXzJ+ZBKVbRkNNOz5J0wlHRYBajrrPLk5vSvKPZ134Jx64gB/J3uKkWfrBjB9vGVZft+ztRt1y5LR3wOJ+Id/yLVo+M9+b1ZAgMTEeiiJYP5K/ct3Uyhn/g9rA/hu3GWga8z9oZ/JNUAYdx76eKPPo8+L+l8fJY53NPM87A2waJPDvknjK3t8/twtHS6IzJZqChx4Kb1XmT1zTTqTLLsOSXLZ5rwx0dV9WvPzn2s2bn+wkqtHagkEjZ+h826BXKjobJI7/yxi4PnI+YxClRVdw5Q+S6FyMGTqDcHO2zitXDNXvF73hVrPGfmCuh0UD8Hjz3SATJSIEYeZC5KbkvILIC5Hz5Y/1ubgHplDsuia180fE=
 before_install:
-# download and install terraform
+- openssl aes-256-cbc -K $encrypted_77557e3ded83_key -iv $encrypted_77557e3ded83_iv
+  -in .ovhtravis.gpg.enc -out .ovhtravis.gpg -d
+- gpg --import .ovhtravis.gpg
+- echo $GPG_PASS > .gpg.passphrase
+- sudo apt-get -qq update
+- sudo apt-get install -y jq
+- sudo pip install python-openstackclient swift
+- mkdir -p ~/bin
 - curl -sLo terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 - unzip terraform.zip
-- mkdir -p ~/bin
 - mv terraform ~/bin
+- curl -sLo packer.zip https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip
+- unzip packer.zip
+- mv packer ~/bin/packer-io
 - export PATH="~/bin:$PATH"
-#generate temp ssh keypair that will be used for tests
 - ssh-keygen -f /home/travis/.ssh/id_rsa -t rsa -N ''
 script:
+- (cd examples/k8s-glance-image && make coreos)
 - export TF_VAR_name=TRAVIS_${TRAVIS_BUILD_NUMBER}
 - test/runtests.sh
+- (cd examples/k8s-glance-image && make publish-coreos)
 branches:
   only:
   - master

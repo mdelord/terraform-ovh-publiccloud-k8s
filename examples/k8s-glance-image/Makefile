@@ -1,15 +1,13 @@
-PACKERBIN ?= $(shell which packer-io || which packer)
-TERRAFORMBIN ?= $(shell which terraform)
-
 all: coreos
 
-.terraform:
-	@$(TERRAFORMBIN) init
+coreos:
+	@./build.sh coreos
 
-terraform.tfstate: .terraform
-	@$(TERRAFORMBIN) apply -var region=$(OS_REGION_NAME) > /dev/null 2>&1
+centos7:
+	@./build.sh centos7
 
-coreos: terraform.tfstate
-	$(PACKERBIN) build -var region=$(OS_REGION_NAME) \
-	           	  -var ext_net_id=$(shell $(TERRAFORMBIN) output ext_net_id) \
-				  packer.json
+publish-coreos:
+	@./publish.sh "CoreOS Stable K8s" "latest"
+
+publish-centos7:
+	@./publish.sh "Centos 7 K8s" "latest"
