@@ -14,10 +14,6 @@ else
     echo $GPG_PASS > "$BASEDIR/.gpg.passphrase"
 fi
 
-echo "install jq & curl" >&2
-sudo apt-get -qq update
-sudo apt-get install -y jq curl
-
 echo "install openstack & swift clis" >&2
 sudo pip3 install python-openstackclient python-swiftclient
 
