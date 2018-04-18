@@ -12,6 +12,7 @@ To build the k8s Glance Image:
 
 1. `git clone` this repo to your computer.
 1. Install [Packer](https://www.packer.io/).
+1. Install the openstac cli by running `pip install python-openstackclient`.
 1. Configure your Openstack credentials using one of the [options supported by the Openstack API](https://developer.openstack.org/api-guide/quick-start/api-quick-start.html). 
 1. Update the `variables` section of the `packer.json` Packer template to configure the Openstack region, K8s version you wish to use.
 1. Run `packer build -var "ext_net_id=<Ext-Net Id>" packer.json`.
@@ -26,7 +27,7 @@ When creating your own Packer template for production usage, you can copy the ex
 
 ```json
 {
-  "provisioners": [  
+  "provisioners": [ 
     {
       "type": "file",
       "source": "{{template_dir}}/../../modules",
@@ -39,7 +40,7 @@ Your code should look more like this:
 
 ```json
 {
-   "provisioners": [  
+   "provisioners": [
     {
       "type": "shell-local",
       "command": "git clone --branch <MODULE_VERSION>  https://github.com/ovh/terraform-ovh-publiccloud-k8s.git {{template_dir}}/tmp-module/terraform-ovh-k8s"
