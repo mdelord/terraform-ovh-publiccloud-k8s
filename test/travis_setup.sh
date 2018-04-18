@@ -19,7 +19,7 @@ sudo apt-get -qq update
 sudo apt-get install -y jq curl
 
 echo "install openstack & swift clis" >&2
-sudo pip install python-openstackclient python-swiftclient
+sudo pip3 install python-openstackclient python-swiftclient
 
 echo "creating HOME/bin directory" >&2
 mkdir -p ~/bin
