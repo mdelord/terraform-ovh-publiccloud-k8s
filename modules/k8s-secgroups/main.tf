@@ -1,15 +1,17 @@
 resource "openstack_networking_secgroup_v2" "master" {
+  count       = "${var.apply_module ? 1 : 0}"
   name        = "${var.name}_master"
   description = "${var.name} master nodes security group"
 }
 
 resource "openstack_networking_secgroup_v2" "worker" {
+  count       = "${var.apply_module ? 1 : 0}"
   name        = "${var.name}_worker"
   description = "${var.name} worker nodes security group"
 }
 
 resource "openstack_networking_secgroup_rule_v2" "egress-ipv4_worker" {
-  count             = "${var.worker_egress_ip_prefix != "" ? 1 : 0}"
+  count             = "${var.apply_module && var.worker_egress_ip_prefix != "" ? 1 : 0}"
   direction         = "egress"
   ethertype         = "IPv4"
   security_group_id = "${openstack_networking_secgroup_v2.worker.id}"
@@ -17,7 +19,7 @@ resource "openstack_networking_secgroup_rule_v2" "egress-ipv4_worker" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "egress-ipv4_master" {
-  count             = "${var.master_egress_ip_prefix != "" ? 1 : 0}"
+  count             = "${var.apply_module && var.master_egress_ip_prefix != "" ? 1 : 0}"
   direction         = "egress"
   ethertype         = "IPv4"
   security_group_id = "${openstack_networking_secgroup_v2.master.id}"
@@ -25,7 +27,7 @@ resource "openstack_networking_secgroup_rule_v2" "egress-ipv4_master" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "etcd_peer_master_master" {
-  count             = "${var.etcd ? 1 : 0}"
+  count             = "${var.apply_module && var.etcd ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -36,7 +38,7 @@ resource "openstack_networking_secgroup_rule_v2" "etcd_peer_master_master" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "etcd_client_master_master" {
-  count             = "${var.etcd ? 1 : 0}"
+  count             = "${var.apply_module && var.etcd ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -47,7 +49,7 @@ resource "openstack_networking_secgroup_rule_v2" "etcd_client_master_master" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "etcd_client_worker_master" {
-  count             = "${var.etcd ? 1 : 0}"
+  count             = "${var.apply_module && var.etcd ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -58,7 +60,7 @@ resource "openstack_networking_secgroup_rule_v2" "etcd_client_worker_master" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "cfssl_master_master" {
-  count             = "${var.cfssl ? 1 : 0}"
+  count             = "${var.apply_module && var.cfssl ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -69,7 +71,7 @@ resource "openstack_networking_secgroup_rule_v2" "cfssl_master_master" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "cfssl_worker_master" {
-  count             = "${var.cfssl ? 1 : 0}"
+  count             = "${var.apply_module && var.cfssl ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -80,7 +82,7 @@ resource "openstack_networking_secgroup_rule_v2" "cfssl_worker_master" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "icmp_master_master" {
-  count             = "${var.ping ? 1 : 0}"
+  count             = "${var.apply_module && var.ping ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "icmp"
@@ -89,7 +91,7 @@ resource "openstack_networking_secgroup_rule_v2" "icmp_master_master" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "icmp_worker_worker" {
-  count             = "${var.ping ? 1 : 0}"
+  count             = "${var.apply_module && var.ping ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "icmp"
@@ -98,7 +100,7 @@ resource "openstack_networking_secgroup_rule_v2" "icmp_worker_worker" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "icmp_master_worker" {
-  count             = "${var.ping ? 1 : 0}"
+  count             = "${var.apply_module && var.ping ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "icmp"
@@ -107,7 +109,7 @@ resource "openstack_networking_secgroup_rule_v2" "icmp_master_worker" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "icmp_worker_master" {
-  count             = "${var.ping ? 1 : 0}"
+  count             = "${var.apply_module && var.ping ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "icmp"
@@ -118,7 +120,7 @@ resource "openstack_networking_secgroup_rule_v2" "icmp_worker_master" {
 ### kubernetes networking based on https://github.com/coreos/coreos-kubernetes/blob/master/Documentation/kubernetes-networking.md
 
 resource "openstack_networking_secgroup_rule_v2" "flannel_vxlan_master_master" {
-  count             = "${(var.flannel_vxlan || var.canal)? 1 : 0}"
+  count             = "${var.apply_module && (var.flannel_vxlan || var.canal)? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "udp"
@@ -129,7 +131,7 @@ resource "openstack_networking_secgroup_rule_v2" "flannel_vxlan_master_master" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "flannel_vxlan_worker_worker" {
-  count             = "${(var.flannel_vxlan || var.canal)? 1 : 0}"
+  count             = "${var.apply_module && (var.flannel_vxlan || var.canal)? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "udp"
@@ -140,7 +142,7 @@ resource "openstack_networking_secgroup_rule_v2" "flannel_vxlan_worker_worker" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "flannel_vxlan_master_worker" {
-  count             = "${(var.flannel_vxlan || var.canal)? 1 : 0}"
+  count             = "${var.apply_module && (var.flannel_vxlan || var.canal)? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "udp"
@@ -151,7 +153,7 @@ resource "openstack_networking_secgroup_rule_v2" "flannel_vxlan_master_worker" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "flannel_vxlan_worker_master" {
-  count             = "${(var.flannel_vxlan || var.canal)? 1 : 0}"
+  count             = "${var.apply_module && (var.flannel_vxlan || var.canal)? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "udp"
@@ -162,7 +164,7 @@ resource "openstack_networking_secgroup_rule_v2" "flannel_vxlan_worker_master" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "flannel_udp_master_master" {
-  count             = "${var.flannel_udp? 1 : 0}"
+  count             = "${var.apply_module && var.flannel_udp? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "udp"
@@ -171,8 +173,9 @@ resource "openstack_networking_secgroup_rule_v2" "flannel_udp_master_master" {
   remote_group_id   = "${openstack_networking_secgroup_v2.master.id}"
   security_group_id = "${openstack_networking_secgroup_v2.master.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "flannel_udp_worker_worker" {
-  count             = "${var.flannel_udp? 1 : 0}"
+  count             = "${var.apply_module && var.flannel_udp? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "udp"
@@ -181,8 +184,9 @@ resource "openstack_networking_secgroup_rule_v2" "flannel_udp_worker_worker" {
   remote_group_id   = "${openstack_networking_secgroup_v2.worker.id}"
   security_group_id = "${openstack_networking_secgroup_v2.worker.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "flannel_udp_master_worker" {
-  count             = "${var.flannel_udp? 1 : 0}"
+  count             = "${var.apply_module && var.flannel_udp? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "udp"
@@ -191,8 +195,9 @@ resource "openstack_networking_secgroup_rule_v2" "flannel_udp_master_worker" {
   remote_group_id   = "${openstack_networking_secgroup_v2.master.id}"
   security_group_id = "${openstack_networking_secgroup_v2.worker.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "flannel_udp_worker_master" {
-  count             = "${var.flannel_udp? 1 : 0}"
+  count             = "${var.apply_module && var.flannel_udp? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "udp"
@@ -203,6 +208,7 @@ resource "openstack_networking_secgroup_rule_v2" "flannel_udp_worker_master" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "api-server" {
+  count             = "${var.apply_module ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -211,7 +217,9 @@ resource "openstack_networking_secgroup_rule_v2" "api-server" {
   remote_group_id   = "${openstack_networking_secgroup_v2.master.id}"
   security_group_id = "${openstack_networking_secgroup_v2.master.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "api-server-from-worker" {
+  count             = "${var.apply_module ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -222,6 +230,7 @@ resource "openstack_networking_secgroup_rule_v2" "api-server-from-worker" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "kubelet_master_master" {
+  count             = "${var.apply_module ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -232,6 +241,7 @@ resource "openstack_networking_secgroup_rule_v2" "kubelet_master_master" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "kubelet_master_worker" {
+  count             = "${var.apply_module ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -242,6 +252,7 @@ resource "openstack_networking_secgroup_rule_v2" "kubelet_master_worker" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "kubelet-heapster_worker_worker" {
+  count             = "${var.apply_module ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -250,7 +261,9 @@ resource "openstack_networking_secgroup_rule_v2" "kubelet-heapster_worker_worker
   remote_group_id   = "${openstack_networking_secgroup_v2.worker.id}"
   security_group_id = "${openstack_networking_secgroup_v2.worker.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "kubelet-heapster-master_worker" {
+  count             = "${var.apply_module ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -261,6 +274,7 @@ resource "openstack_networking_secgroup_rule_v2" "kubelet-heapster-master_worker
 }
 
 resource "openstack_networking_secgroup_rule_v2" "kubelet-read_worker_worker" {
+  count             = "${var.apply_module ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -269,7 +283,9 @@ resource "openstack_networking_secgroup_rule_v2" "kubelet-read_worker_worker" {
   remote_group_id   = "${openstack_networking_secgroup_v2.worker.id}"
   security_group_id = "${openstack_networking_secgroup_v2.worker.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "kubelet-read-master_worker" {
+  count             = "${var.apply_module ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -280,6 +296,7 @@ resource "openstack_networking_secgroup_rule_v2" "kubelet-read-master_worker" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "kubelet-read-master_master" {
+  count             = "${var.apply_module ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -290,6 +307,7 @@ resource "openstack_networking_secgroup_rule_v2" "kubelet-read-master_master" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "kubelet-read-worker_master" {
+  count             = "${var.apply_module ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -309,8 +327,9 @@ resource "openstack_networking_secgroup_rule_v2" "calico-bgp_master_master" {
   remote_group_id   = "${openstack_networking_secgroup_v2.master.id}"
   security_group_id = "${openstack_networking_secgroup_v2.master.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "calico-bgp_worker_worker" {
-  count             = "${var.calico_bgp? 1 : 0}"
+  count             = "${var.apply_module && var.calico_bgp? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -319,8 +338,9 @@ resource "openstack_networking_secgroup_rule_v2" "calico-bgp_worker_worker" {
   remote_group_id   = "${openstack_networking_secgroup_v2.worker.id}"
   security_group_id = "${openstack_networking_secgroup_v2.worker.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "calico-bgp_master_worker" {
-  count             = "${var.calico_bgp? 1 : 0}"
+  count             = "${var.apply_module && var.calico_bgp? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -329,8 +349,9 @@ resource "openstack_networking_secgroup_rule_v2" "calico-bgp_master_worker" {
   remote_group_id   = "${openstack_networking_secgroup_v2.master.id}"
   security_group_id = "${openstack_networking_secgroup_v2.worker.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "calico-bgp_worker_master" {
-  count             = "${var.calico_bgp? 1 : 0}"
+  count             = "${var.apply_module && var.calico_bgp? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -341,6 +362,7 @@ resource "openstack_networking_secgroup_rule_v2" "calico-bgp_worker_master" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "apps_worker_worker" {
+  count             = "${var.apply_module ? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "tcp"
@@ -351,31 +373,34 @@ resource "openstack_networking_secgroup_rule_v2" "apps_worker_worker" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "ipip_master_master" {
-  count             = "${var.canal? 1 : 0}"
+  count             = "${var.apply_module && var.canal? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "4"
   remote_group_id   = "${openstack_networking_secgroup_v2.master.id}"
   security_group_id = "${openstack_networking_secgroup_v2.master.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "ipip_worker_worker" {
-  count             = "${var.canal? 1 : 0}"
+  count             = "${var.apply_module && var.canal? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "4"
   remote_group_id   = "${openstack_networking_secgroup_v2.worker.id}"
   security_group_id = "${openstack_networking_secgroup_v2.worker.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "ipip_master_worker" {
-  count             = "${var.canal? 1 : 0}"
+  count             = "${var.apply_module && var.canal? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "4"
   remote_group_id   = "${openstack_networking_secgroup_v2.master.id}"
   security_group_id = "${openstack_networking_secgroup_v2.worker.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "ipip_worker_master" {
-  count             = "${var.canal? 1 : 0}"
+  count             = "${var.apply_module && var.canal? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "4"
@@ -384,31 +409,34 @@ resource "openstack_networking_secgroup_rule_v2" "ipip_worker_master" {
 }
 
 resource "openstack_networking_secgroup_rule_v2" "ipip-legacy_master_master" {
-  count             = "${var.canal? 1 : 0}"
+  count             = "${var.apply_module && var.canal? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "94"
   remote_group_id   = "${openstack_networking_secgroup_v2.master.id}"
   security_group_id = "${openstack_networking_secgroup_v2.master.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "ipip-legacy_worker_worker" {
-  count             = "${var.canal? 1 : 0}"
+  count             = "${var.apply_module && var.canal? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "94"
   remote_group_id   = "${openstack_networking_secgroup_v2.worker.id}"
   security_group_id = "${openstack_networking_secgroup_v2.worker.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "ipip-legacy_master_worker" {
-  count             = "${var.canal? 1 : 0}"
+  count             = "${var.apply_module && var.canal? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "94"
   remote_group_id   = "${openstack_networking_secgroup_v2.master.id}"
   security_group_id = "${openstack_networking_secgroup_v2.worker.id}"
 }
+
 resource "openstack_networking_secgroup_rule_v2" "ipip-legacy_worker_master" {
-  count             = "${var.canal? 1 : 0}"
+  count             = "${var.apply_module && var.canal? 1 : 0}"
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "94"

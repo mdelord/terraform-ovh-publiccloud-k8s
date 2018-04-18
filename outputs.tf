@@ -25,3 +25,13 @@ output "api_endpoint" {
   description = "This represents the public k8s api endpoint only if `master_mode` is set to true"
   value       = "${var.master_mode ? format("%s:6443", element(concat(data.template_file.public_ipv4_addrs.*.rendered, list("")), 0)) : ""}"
 }
+
+output "master_group_id" {
+  description = "The security group id for master nodes if `create_secgroups` is set to true"
+  value       = "${module.secgroups.master_group_id}"
+}
+
+output "worker_group_id" {
+  description = "The security group id for worker nodes if `create_secgroups` is set to true"
+  value       = "${module.secgroups.worker_group_id}"
+}
