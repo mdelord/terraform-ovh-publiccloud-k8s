@@ -26,6 +26,15 @@ data "openstack_networking_network_v2" "ext_net" {
   tenant_id = ""
 }
 
+module "secgroups" {
+  source       = "./modules/k8s-secgroups"
+  apply_module = "${var.create_secgroups}"
+  name         = "${var.name}"
+  etcd         = "${var.etcd}"
+  cfssl        = "${var.cfssl}"
+  cfssl_port   = "${var.cfssl_port}"
+}
+
 resource "openstack_networking_port_v2" "public_port_k8s" {
   count = "${var.associate_public_ipv4 ? var.count : 0}"
   name  = "${var.name}_public_${count.index}"
@@ -33,7 +42,11 @@ resource "openstack_networking_port_v2" "public_port_k8s" {
   network_id     = "${data.openstack_networking_network_v2.ext_net.id}"
   admin_state_up = "true"
 
-  security_group_ids = ["${var.security_group_ids}"]
+  security_group_ids = [
+    "${var.security_group_ids}",
+    "${var.create_secgroups && var.master_mode ? module.secgroups.master_group_id : ""}",
+    "${var.create_secgroups && var.worker_mode ? module.secgroups.worker_group_id : ""}"
+  ]
 }
 
 data "template_file" "public_ipv4_addrs" {
@@ -134,7 +147,8 @@ resource "openstack_compute_instance_v2" "multinet_k8s" {
 }
 
 resource "openstack_compute_instance_v2" "singlenet_k8s" {
-  count       = "${! (var.associate_public_ipv4 && var.associate_private_ipv4) ? var.count : 0}"
+  count = "${! (var.associate_public_ipv4 && var.associate_private_ipv4) ? var.count : 0}"
+
   #DNS-1123 subdomain must consist of lower case alphanumeric characters, '-' or '.'
   name        = "${replace(lower(var.name), "/[^0-9a-z.-]/", "-")}-${count.index}"
   image_id    = "${element(coalescelist(data.openstack_images_image_v2.k8s.*.id, list(var.image_id)), 0)}"

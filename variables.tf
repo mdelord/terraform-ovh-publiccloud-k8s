@@ -59,6 +59,11 @@ variable "antiaffinity" {
   default     = false
 }
 
+variable "create_secgroups" {
+  description = "Determines if the module is responsible for security groups creation. If set leaved to `false`, sec group ids shall be given in input variable `security_group_ids`"
+  default     = false
+}
+
 variable "metadata" {
   description = "A map of metadata to add to all resources supporting it."
   default     = {}

@@ -2,6 +2,11 @@ variable "name" {
   description  = "Prefix name that will be used for security groups"
 }
 
+variable "apply_module" {
+  description = "If set to false, no resource within this module will be created"
+  default     = true
+}
+
 variable "ping" {
   description = "allow ping (icmp)"
   default     = true
