@@ -17,25 +17,10 @@ env:
 before_install:
 - openssl aes-256-cbc -K $encrypted_77557e3ded83_key -iv $encrypted_77557e3ded83_iv
   -in .ovhtravis.gpg.enc -out .ovhtravis.gpg -d
-- gpg --import .ovhtravis.gpg
-- echo $GPG_PASS > .gpg.passphrase
-- sudo apt-get -qq update
-- sudo apt-get install -y jq
-- sudo pip install python-openstackclient python-swiftclient
-- mkdir -p ~/bin
-- curl -sLo terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-- unzip terraform.zip
-- mv terraform ~/bin
-- curl -sLo packer.zip https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip
-- unzip packer.zip
-- mv packer ~/bin/packer-io
-- export PATH="~/bin:$PATH"
-- ssh-keygen -f /home/travis/.ssh/id_rsa -t rsa -N ''
+- ./test/travis_setup.sh
 script:
-- (cd examples/k8s-glance-image && make coreos)
 - export TF_VAR_name=TRAVIS_${TRAVIS_BUILD_NUMBER}
-- test/runtests.sh
-- (cd examples/k8s-glance-image && make publish-coreos)
+- test/runtests.sh $OS_REGION_NAME publish
 branches:
   only:
   - master
