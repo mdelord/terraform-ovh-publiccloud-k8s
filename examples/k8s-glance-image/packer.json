@@ -9,6 +9,7 @@
         "module_etcd_sha256sum": "7f6d7a613162d4c9456854e76a098a4cc6dd13e2cf88cba69666e33126ac19a2",
         "ext_net_id": "",
         "version": "latest",
+        "image_name": "",
         "commit": ""
     },
     "builders": [
@@ -18,7 +19,7 @@
             "identity_endpoint": "{{user `identity_endpoint`}}",
             "region": "{{user `region`}}",
             "ssh_username": "core",
-            "image_name": "CoreOS Stable K8s",
+            "image_name": "{{user `image_name`}}",
             "source_image_name": "CoreOS Stable",
             "ssh_ip_version": "4",
             "flavor": "s1-2",
@@ -37,7 +38,7 @@
             "identity_endpoint": "{{user `identity_endpoint`}}",
             "region": "{{user `region`}}",
             "ssh_username": "centos",
-            "image_name": "Centos 7 K8s",
+            "image_name": "{{user `image_name`}}",
             "source_image_name": "Centos 7",
             "ssh_ip_version": "4",
             "flavor": "s1-2",
