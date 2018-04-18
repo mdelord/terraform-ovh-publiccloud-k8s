@@ -21,13 +21,15 @@ Environment=BOOTSTRAP_TOKEN_ETCD_KEY=k8s/admin/k8s-boostrap-token
 Environment=PKI_ETCD_KEY=k8s/admin/pki
 Environment=INIT_ETCD_LOCK=k8s/admin/k8s-init-lock
 
-Environment=NETWORKING_DNS_DOMAIN=local
+Environment=CLUSTER_DOMAIN=kubernetes.local
 Environment=NETWORKING_SERVICE_SUBNET=10.3.0.0/16
 Environment=NETWORKING_POD_SUBNET=10.2.0.0/16
 Environment=API_SERVER_CERT_SANS=127.0.0.1
 Environment=KUBERNETES_VERSION=1.10.0
 Environment=KUBEPROXY_CONFIG_MODE=iptables
 Environment=AUTHORIZATION_MODES=Node,RBAC
+
+EnvironmentFile=/etc/sysconfig/kubernetes.conf
 
 ExecStart=/opt/k8s/k8s-init
 

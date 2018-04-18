@@ -39,7 +39,7 @@ EOF
   }
 
   provisioner "remote-exec" {
-    inline = "sudo systemctl start k8s-init kubelet"
+    inline = "sudo systemctl start k8s-init.path kubelet.path"
   }
 }
 
