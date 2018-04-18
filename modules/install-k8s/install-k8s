@@ -198,10 +198,12 @@ function pull_needed_image(){
 function setup_systemd {
     local readonly username="$1"
     sudo cp "$SCRIPT_DIR/kubelet.service" "/etc/systemd/system/"
+    sudo cp "$SCRIPT_DIR/kubelet.path" "/etc/systemd/system/"
     sudo cp "$SCRIPT_DIR/k8s-init.service" "/etc/systemd/system/"
+    sudo cp "$SCRIPT_DIR/k8s-init.path" "/etc/systemd/system/"
     sudo cp "$SCRIPT_DIR/k8s-get-certs.service" "/etc/systemd/system/"
 
-    sudo systemctl enable kubelet.service k8s-init.service docker.service
+    sudo systemctl enable kubelet.path k8s-init.path docker.service
 
     # disable firewalld. TODO: make a proper setup for etcd
     if systemctl list-unit-files --all | grep -q firewalld.service; then

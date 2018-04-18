@@ -11,7 +11,7 @@ kubeProxy:
   config:
     mode: ${KUBEPROXY_CONFIG_MODE:-iptables}
 networking:
-  dnsDomain: ${NETWORKING_DNS_DOMAIN:-local}
+  dnsDomain: ${CLUSTER_DOMAIN:-kubernetes.local}
   serviceSubnet: ${NETWORKING_SERVICE_SUBNET:-10.3.0.0/16}
   podSubnet: ${NETWORKING_POD_SUBNET:-10.2.0.0/16}
 kubernetesVersion: ${KUBERNETES_VERSION:-1.10.0}

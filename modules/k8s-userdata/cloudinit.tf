@@ -43,24 +43,6 @@ data "template_file" "systemd_network_files" {
 TPL
 }
 
-data "template_file" "systemd_dropins_files" {
-  count = "${var.count}"
-  template = <<TPL
-- path: /etc/systemd/system/k8s-init.service.d/00-terraform.conf
-  permissions: '0644'
-  content: |
-    ${indent(4, data.template_file.k8s_init_service.rendered)}
-- path: /etc/systemd/system/kubelet.service.d/00-terraform.conf
-  permissions: '0644'
-  content: |
-    ${indent(4, data.template_file.kubelet_service.rendered)}
-- path: /etc/systemd/system/k8s-get-certs.service.d/00-terraform.conf
-  permissions: '0644'
-  content: |
-    ${indent(4, element(data.template_file.k8s_get_certs_service.*.rendered, count.index))}
-TPL
-}
-
 data "template_file" "cfssl_conf" {
   template = <<TPL
 - path: /etc/sysconfig/cfssl.conf
@@ -78,6 +60,15 @@ data "template_file" "etcd_conf" {
   mode: 0644
   content: |
     ${indent(4, module.etcd.conf[count.index])}
+TPL
+}
+
+data "template_file" "kubernetes_conf" {
+  template = <<TPL
+- path: /etc/sysconfig/kubernetes.conf
+  mode: 0644
+  content: |
+    ${indent(4, data.template_file.k8s_vars.rendered)}
 TPL
 }
 
@@ -101,7 +92,7 @@ ssh_authorized_keys:
 write_files:
   ${var.master_mode && var.cfssl && var.cfssl_endpoint == "" && count.index == 0 ? indent(2, element(data.template_file.cfssl_files.*.rendered, count.index)) : ""}
   ${var.master_mode && var.etcd ? indent(2, element(data.template_file.etcd_conf.*.rendered, count.index)) : ""}
-  ${indent(2, element(data.template_file.systemd_dropins_files.*.rendered, count.index))}
+  ${indent(2, data.template_file.kubernetes_conf.rendered)}
   ${indent(2, data.template_file.systemd_network_files.rendered)}
   - path: /etc/sysconfig/network-scripts/route-eth0
     content: |

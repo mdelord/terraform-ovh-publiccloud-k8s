@@ -12,9 +12,11 @@ Environment=POD_MANIFEST_PATH=/etc/kubernetes/manifests
 Environment=CNI_CONF_DIR=/etc/cni/net.d
 Environment=CNI_BIN_DIR=/opt/cni/bin
 Environment=CLUSTER_DNS=10.3.0.10
-Environment=CLUSTER_DOMAIN=local
+Environment=CLUSTER_DOMAIN=kubernetes.local
 Environment=AUTH_MODE=Webhook
 Environment=CLIENT_CA_FILE=/etc/kubernetes/pki/ca.crt
+
+EnvironmentFile=/etc/sysconfig/kubernetes.conf
 
 ExecStart=/opt/k8s/bin/kubelet \
   --address=${KUBELET_ADDRESS} \
