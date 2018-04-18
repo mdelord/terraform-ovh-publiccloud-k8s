@@ -7,6 +7,10 @@ data "openstack_images_image_v2" "k8s" {
   count       = "${var.image_id == "" ? 1 : 0}"
   name        = "${var.image_name}"
   most_recent = true
+
+  properties {
+    version = "${var.image_version}"
+  }
 }
 
 data "openstack_networking_subnet_v2" "subnets" {

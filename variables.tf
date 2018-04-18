@@ -31,7 +31,12 @@ variable "image_id" {
 
 variable "image_name" {
   description = "The name of the glance image to run in the cluster. If `post_install_module` is set to `false`, this should be an image built from the Packer template under examples/k8s-glance-image/k8s.json. If the default value is used, Terraform will look up the latest image build automatically."
-  default     = "CoreOS Stable"
+  default     = "CoreOS Stable K8s"
+}
+
+variable "image_version" {
+  description = "The version of the prebuilt glance image to run in the cluster."
+  default     = "latest"
 }
 
 variable "flavor_name" {
@@ -123,7 +128,7 @@ EOD
 
 variable "post_install_modules" {
   description = "Setting this variable to true will assume the necessary software to boot the cluster hasn't packaged in the image and thus will be post provisionned. Defaults to `true`"
-  default     = true
+  default     = false
 }
 
 variable "ssh_user" {
