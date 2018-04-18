@@ -3,6 +3,12 @@ language: python
 python:
   - "3.6"
 sudo: required
+addons:
+  apt:
+    packages:
+      - python3-pip
+      - jq
+      - curl
 env:
   global:
   - TERRAFORM_VERSION=0.11.7
