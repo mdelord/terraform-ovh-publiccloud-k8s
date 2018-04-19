@@ -1,14 +1,12 @@
 dist: trusty
-language: python
-python:
-  - "3.6"
 sudo: required
 addons:
   apt:
     packages:
-      - python3-pip
       - jq
       - curl
+      - python-openstackclient
+      - python-swiftclient
 env:
   global:
   - TERRAFORM_VERSION=0.11.7
@@ -36,5 +34,3 @@ notifications:
   irc:
     channels:
     - irc.freenode.org#ovh-oss
-    skip_join: true
-    use_notice: true

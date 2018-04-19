@@ -210,6 +210,12 @@ function setup_systemd {
         sudo systemctl stop firewalld
         sudo systemctl mask firewalld
     fi
+    
+    # disable coreos cl auto update
+    if systemctl list-unit-files --all | grep -q update-engine.service; then
+        sudo systemctl stop update-engine.service locksmithd.service
+        sudo systemctl mask update-engine.service locksmithd.service
+    fi
 }
 
 function install {

@@ -3,48 +3,48 @@ variable "name" {
 }
 
 variable "apply_module" {
-  description = "If set to false, no resource within this module will be created"
-  default     = true
+ description = "If set to false, no resource within this module will be created"
+ default     = true
 }
 
 variable "ping" {
-  description = "allow ping (icmp)"
-  default     = true
+ description = "allow ping (icmp)"
+ default     = true
 }
 
 variable "flannel_udp" {
-  description = "allow flannel with udp backend"
-  default     = false
+ description = "allow flannel with udp backend"
+ default     = false
 }
 
 variable "flannel_vxlan" {
-  description = "allow flannel with vxlan backend"
-  default     = false
+ description = "allow flannel with vxlan backend"
+ default     = false
 }
 
 variable "calico_bgp" {
-  description = "allow calico with bgp backend"
-  default     = false
+ description = "allow calico with bgp backend"
+ default     = false
 }
 
 variable "canal" {
-  description = "allow canal networking (calico+flannel). Defaults to `true`"
-  default     = true
+ description = "allow canal networking (calico+flannel). Defaults to `true`"
+ default     = true
 }
 
 variable "etcd" {
-  description = "allow etcd communication"
-  default     = false
+ description = "allow etcd communication"
+ default     = false
 }
 
 variable "cfssl" {
-  description = "allow cfssl communication"
-  default     = false
+ description = "allow cfssl communication"
+ default     = false
 }
 
 variable "cfssl_port" {
-  description = "cfssl communication tcp port"
-  default     = 8888
+ description = "cfssl communication tcp port"
+ default     = 8888
 }
 
 variable "worker_egress_ip_prefix" {

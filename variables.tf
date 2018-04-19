@@ -14,6 +14,11 @@ variable "ssh_authorized_keys" {
   default     = []
 }
 
+variable "key_pair" {
+  description = "Predefined keypair name to use with instances"
+  default     = ""
+}
+
 variable "domain" {
   description = "The domain of the cluster."
   default     = "local"

@@ -41,3 +41,8 @@ variable "public_sshkey" {
   description = "Key to use to ssh connect"
   default     = "~/.ssh/id_rsa.pub"
 }
+
+variable "key_pair" {
+  description = "Predefined keypair to use"
+  default     = ""
+}

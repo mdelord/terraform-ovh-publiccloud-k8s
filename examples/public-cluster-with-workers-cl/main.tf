@@ -59,6 +59,7 @@ module "k8s" {
   image_name             = "CoreOS Stable"
   flavor_name            = "${var.os_flavor_name_masters}"
   ssh_user               = "core"
+  key_pair               = "${var.key_pair}"
   ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
   security_group_ids     = ["${module.k8s_secgroups.master_group_id}"]
   associate_public_ipv4  = true
@@ -80,6 +81,7 @@ module "k8s_workers" {
   image_name             = "CoreOS Stable"
   flavor_name            = "${var.os_flavor_name_workers}"
   ssh_user               = "core"
+  key_pair               = "${var.key_pair}"
   ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
   security_group_ids     = ["${module.k8s_secgroups.worker_group_id}"]
   associate_public_ipv4  = true

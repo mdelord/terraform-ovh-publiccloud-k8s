@@ -43,9 +43,7 @@ resource "openstack_networking_port_v2" "public_port_k8s" {
   admin_state_up = "true"
 
   security_group_ids = [
-    "${var.security_group_ids}",
-    "${var.create_secgroups && var.master_mode ? module.secgroups.master_group_id : ""}",
-    "${var.create_secgroups && var.worker_mode ? module.secgroups.worker_group_id : ""}"
+    "${compact(concat(var.security_group_ids, list((var.create_secgroups && var.master_mode ? module.secgroups.master_group_id : ""), (var.create_secgroups && var.worker_mode ? module.secgroups.worker_group_id : ""))))}"
   ]
 }
 
@@ -128,6 +126,7 @@ resource "openstack_compute_instance_v2" "multinet_k8s" {
   image_id    = "${element(coalescelist(data.openstack_images_image_v2.k8s.*.id, list(var.image_id)), 0)}"
   flavor_name = "${var.flavor_name}"
   user_data   = "${element(module.userdata.rendered, count.index)}"
+  key_pair    = "${var.key_pair}"
 
   network {
     port = "${element(openstack_networking_port_v2.port_k8s.*.id, count.index)}"
@@ -154,6 +153,7 @@ resource "openstack_compute_instance_v2" "singlenet_k8s" {
   image_id    = "${element(coalescelist(data.openstack_images_image_v2.k8s.*.id, list(var.image_id)), 0)}"
   flavor_name = "${var.flavor_name}"
   user_data   = "${element(module.userdata.rendered, count.index)}"
+  key_pair    = "${var.key_pair}"
 
   network {
     access_network = true
