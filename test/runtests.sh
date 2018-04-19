@@ -4,7 +4,7 @@ REGIONS=${1:-$OS_REGION_NAME}
 PUBLISH=$2
 BASEDIR="$(dirname $0)/.."
 TF_VAR_name=${TF_VAR_name:-test}
-TESTS=${TESTS:-(public-cluster-cl public-cluster-cl-prebuilt private-cluster-cl public-cluster-with-workers-cl)}
+TESTS=${TESTS:-public-cluster-cl public-cluster-cl-prebuilt private-cluster-cl public-cluster-with-workers-cl}
 TEST_SSH_PRIVATE_KEY=${TEST_SSH_PRIVATE_KEY}
 
 ## begin ssh setup
