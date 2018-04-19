@@ -20,6 +20,7 @@ module "k8s" {
   etcd                   = true
   flavor_name            = "${var.os_flavor_name}"
   create_secgroups       = true
+  key_pair               = "${var.key_pair}"
   ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
   associate_public_ipv4  = true
   associate_private_ipv4 = false

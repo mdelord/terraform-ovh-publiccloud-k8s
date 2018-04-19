@@ -7,9 +7,12 @@ CLEAN=${4:-1}
 PROJECT=${OS_TENANT_ID}
 VRACK=${OVH_VRACK_ID}
 TEST_NAME=${TF_VAR_name:-test}_$(basename "$DIR")
+TF_VAR_key_pair=${TF_VAR_key_pair:-test}
+TF_VAR_os_region_name=${REGION}
 OUTPUT_TEST="tf_test"
-
 WITH_BASTION=0
+
+export TF_VAR_os_region_name
 
 test_tf(){
     # timeout is not 120 seconds but 120 loops, each taking at least 1 sec
@@ -26,10 +29,6 @@ test_tf(){
 
     return $res
 }
-
-if [ ! -f "$SSH_AUTH_SOCK" ]; then
-    eval $(ssh-agent) && ssh-add ${TEST_SSH_PRIVATE_KEY:-$HOME/.ssh/id_rsa}
-fi
 
 if grep -q bastion_public_ip "$DIR"/*.tf; then
     cp "$(dirname $0)/test_ssh_bastion.tf" "$DIR"
@@ -53,8 +52,7 @@ if [ "${CLEAN}" == "1" ]; then
 fi
 
 # run the full terraform setup
-(cd "${DIR}" && terraform init \
-	   && terraform apply -auto-approve -var os_region_name="${REGION}")
+(cd "${DIR}" && terraform init && terraform apply -auto-approve)
 EXIT_APPLY=$?
 
 # if terraform went well run test
@@ -65,8 +63,7 @@ fi
 
 # if destroy mode, clean terraform setup
 if [ "${DESTROY}" == "1" ]; then
-    (cd "${DIR}" && terraform destroy -force -var os_region_name="${REGION}" \
-        && rm -Rf .terraform *.tfstate* test*.tf)
+    (cd "${DIR}" && terraform destroy -auto-approve && rm -Rf .terraform *.tfstate* test*.tf)
     EXIT_DESTROY=$?
 else
     EXIT_DESTROY=0

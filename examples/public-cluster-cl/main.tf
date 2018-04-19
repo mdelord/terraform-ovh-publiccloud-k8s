@@ -18,12 +18,13 @@ module "k8s" {
   worker_mode            = true
   cfssl                  = true
   etcd                   = true
+  key_pair               = "${var.key_pair}"
+  ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
   post_install_modules   = true
   image_name             = "CoreOS Stable"
   flavor_name            = "${var.os_flavor_name}"
   create_secgroups       = true
   ssh_user               = "core"
-  ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
   associate_public_ipv4  = true
   associate_private_ipv4 = false
 }
