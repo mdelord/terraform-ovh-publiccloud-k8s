@@ -1,12 +1,18 @@
 dist: trusty
 sudo: required
+language: python
+python:
+  - "2.7"
 addons:
   apt:
     packages:
       - jq
       - curl
-      - python-openstackclient
-      - python-swiftclient
+      - python-pip
+      - unzip
+      - openssh-client
+      - libssl-dev
+      - python-dev
 env:
   global:
   - TERRAFORM_VERSION=0.11.7
