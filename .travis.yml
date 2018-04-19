@@ -15,6 +15,8 @@ addons:
       - python-dev
 env:
   global:
+  # don't run all tests or travis build is too long 
+  - TESTS=public-cluster-cl-prebuilt public-cluster-with-workers-cl
   - TERRAFORM_VERSION=0.11.7
   - PACKER_VERSION=1.2.2
   - OS_AUTH_URL=https://auth.cloud.ovh.net/v2.0
