@@ -1,8 +1,6 @@
 provider "openstack" {
   version   = "~> 1.2.0"
-  region    = "${var.os_region_name}"
-  tenant_id = "${var.os_tenant_id}"
-  auth_url  = "${var.os_auth_url}"
+  region    = "${var.region}"
 }
 
 data "http" "myip" {
@@ -48,7 +46,7 @@ resource "openstack_networking_secgroup_rule_v2" "k8s-api" {
 
 module "k8s" {
   source                 = "../.."
-  region                 = "${var.os_region_name}"
+  region                 = "${var.region}"
   name                   = "${var.name}_master"
   count                  = "${var.master_count}"
   master_mode            = true
@@ -57,10 +55,10 @@ module "k8s" {
   etcd                   = true
   post_install_modules   = true
   image_name             = "CoreOS Stable"
-  flavor_name            = "${var.os_flavor_name_masters}"
+  flavor_name            = "${var.masters_flavor_name}"
   ssh_user               = "core"
   key_pair               = "${var.key_pair}"
-  ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
+  ssh_authorized_keys    = ["${file(var.public_sshkey == "" ? "/dev/null" : var.public_sshkey)}"]
   security_group_ids     = ["${module.k8s_secgroups.master_group_id}"]
   associate_public_ipv4  = true
   associate_private_ipv4 = false
@@ -68,7 +66,7 @@ module "k8s" {
 
 module "k8s_workers" {
   source                 = "../.."
-  region                 = "${var.os_region_name}"
+  region                 = "${var.region}"
   name                   = "${var.name}_worker"
   count                  = "${var.worker_count}"
   master_mode            = false
@@ -79,10 +77,10 @@ module "k8s_workers" {
   etcd_endpoints         = "${module.k8s.etcd_endpoints}"
   post_install_modules   = true
   image_name             = "CoreOS Stable"
-  flavor_name            = "${var.os_flavor_name_workers}"
+  flavor_name            = "${var.workers_flavor_name}"
   ssh_user               = "core"
   key_pair               = "${var.key_pair}"
-  ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
+  ssh_authorized_keys    = ["${file(var.public_sshkey == "" ? "/dev/null" : var.public_sshkey)}"]
   security_group_ids     = ["${module.k8s_secgroups.worker_group_id}"]
   associate_public_ipv4  = true
   associate_private_ipv4 = false

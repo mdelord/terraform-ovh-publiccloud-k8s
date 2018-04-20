@@ -1,8 +1,6 @@
 provider "openstack" {
   version   = "~> 1.2.0"
-  region    = "${var.os_region_name}"
-  tenant_id = "${var.os_tenant_id}"
-  auth_url  = "${var.os_auth_url}"
+  region    = "${var.region}"
 }
 
 data "http" "myip" {
@@ -11,7 +9,7 @@ data "http" "myip" {
 
 module "k8s" {
   source                 = "../.."
-  region                 = "${var.os_region_name}"
+  region                 = "${var.region}"
   name                   = "${var.name}"
   count                  = "${var.count}"
   master_mode            = true
@@ -19,10 +17,10 @@ module "k8s" {
   cfssl                  = true
   etcd                   = true
   key_pair               = "${var.key_pair}"
-  ssh_authorized_keys    = ["${file("${var.public_sshkey}")}"]
+  ssh_authorized_keys    = ["${file(var.public_sshkey == "" ? "/dev/null" : var.public_sshkey)}"]
   post_install_modules   = true
   image_name             = "CoreOS Stable"
-  flavor_name            = "${var.os_flavor_name}"
+  flavor_name            = "${var.flavor_name}"
   create_secgroups       = true
   ssh_user               = "core"
   associate_public_ipv4  = true

@@ -1,3 +1,7 @@
-os_region_name = "DE1"
-os_flavor_name = "b2-7"
-public_sshkey = "~/.ssh/id_rsa.pub"
+region = "GRA3"
+flavor_name = "b2-7"
+public_sshkey = ""
+name = "myk8s"
+count = 3
+key_pair = ""
+cidr = "10.0.0.0/16"

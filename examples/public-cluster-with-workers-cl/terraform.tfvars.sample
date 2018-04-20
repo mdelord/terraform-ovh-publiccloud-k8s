@@ -1,3 +1,8 @@
-os_region_name = "DE1"
-os_flavor_name = "b2-7"
-public_sshkey = "~/.ssh/id_rsa.pub"
+region = "GRA3"
+masters_flavor_name = "b2-7"
+workers_flavor_name = "b2-15"
+public_sshkey = ""
+name = "myk8s"
+master_count = 3
+worker_count = 2
+key_pair = ""

@@ -1,5 +1,4 @@
 locals {
-  ip_route_add_tpl   = "- ip route add %s dev %s scope link metric 0"
   eth_route_tpl      = "%s dev %s scope link metric 0"
   networkd_route_tpl = "[Route]\nDestination=%s\nGatewayOnLink=yes\nRouteMetric=3\nScope=link\nProtocol=kernel"
 }

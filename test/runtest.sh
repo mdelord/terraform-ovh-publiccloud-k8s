@@ -4,15 +4,13 @@ DIR=${1:-$(dirname $0)/../examples/public-cluster-cl}
 REGION=${2:-$OS_REGION_NAME}
 DESTROY=${3:-1}
 CLEAN=${4:-1}
-PROJECT=${OS_TENANT_ID}
-VRACK=${OVH_VRACK_ID}
 TEST_NAME=${TF_VAR_name:-test}_$(basename "$DIR")
 TF_VAR_key_pair=${TF_VAR_key_pair:-test}
-TF_VAR_os_region_name=${REGION}
+TF_VAR_region=${REGION}
 OUTPUT_TEST="tf_test"
 WITH_BASTION=0
 
-export TF_VAR_os_region_name
+export TF_VAR_region
 
 test_tf(){
     # timeout is not 120 seconds but 120 loops, each taking at least 1 sec

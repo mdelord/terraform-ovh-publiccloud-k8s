@@ -45,12 +45,12 @@ variable "calico_node_version" {
 
 variable "calico_cni_version" {
   description = "The version of calico_cni to install with the post installation script if `post_install_module` is set to true"
-  default     = "1.11.2"
+  default     = "1.11.4"
 }
 
 variable "flannel_version" {
   description = "The version of flannel to install with the post installation script if `post_install_module` is set to true"
-  default     = "0.9.1"
+  default     = "0.10.0"
 }
 
 variable "kubedns_version" {

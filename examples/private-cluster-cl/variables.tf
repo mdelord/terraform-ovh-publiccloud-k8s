@@ -1,18 +1,8 @@
-variable "os_region_name" {
+variable "region" {
   description = "The Openstack region name"
 }
 
-variable "os_tenant_id" {
-  description = "The id of the openstack project"
-  default     = ""
-}
-
-variable "os_auth_url" {
-  description = "The OpenStack auth url"
-  default     = "https://auth.cloud.ovh.net/v2.0/"
-}
-
-variable "os_flavor_name" {
+variable "flavor_name" {
   description = "Flavor to use"
   default     = "s1-8"
 }
@@ -29,10 +19,15 @@ variable "count" {
 
 variable "public_sshkey" {
   description = "Key to use to ssh connect"
-  default     = "~/.ssh/id_rsa.pub"
+  default     = ""
+}
+
+variable "key_pair" {
+  description = "Predefined keypair to use"
+  default     = ""
 }
 
 variable "cidr" {
   description = "The cidr of the network for hosts (namely openstack instances)"
-  default     = "10.137.0.0/16"
+  default     = "10.0.0.0/16"
 }
