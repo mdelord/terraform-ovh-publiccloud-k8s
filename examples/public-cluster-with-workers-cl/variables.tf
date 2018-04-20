@@ -1,23 +1,13 @@
-variable "os_region_name" {
+variable "region" {
   description = "The Openstack region name"
 }
 
-variable "os_tenant_id" {
-  description = "The id of the openstack project"
-  default     = ""
-}
-
-variable "os_auth_url" {
-  description = "The OpenStack auth url"
-  default     = "https://auth.cloud.ovh.net/v2.0/"
-}
-
-variable "os_flavor_name_masters" {
+variable "masters_flavor_name" {
   description = "Flavor to use for master nodes"
   default     = "s1-8"
 }
 
-variable "os_flavor_name_workers" {
+variable "workers_flavor_name" {
   description = "Flavor to use for worker nodes"
   default     = "s1-8"
 }

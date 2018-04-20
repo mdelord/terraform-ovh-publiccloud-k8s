@@ -1,50 +1,69 @@
-# Simple k8s cluster from a prebuilt glance image
+# Simple Kubernetes Cluster from a prebuilt Glance Image
 
+This examples shows how to use the `terraform-ovh-publiccloud-k8s` module to 
+launch a simple Kubernetes cluster on OVH Public Cloud, based on a `CoreOS Stable`
+image with kubernetes preinstalled, without post-provisionning.
 
-- [Simple k8s cluster](#simple-k8s-cluster)
+- [Simple Kubernetes Cluster from a prebuilt Glance Image](#simple-kubernetes-cluster-from-a-prebuilt-glance-image)
+    - [Pre-Requisites](#pre-requisites)
     - [Configuration](#configuration)
-    - [Run it](#run-it)
-    
-## Install terraform
+    - [Launch the cluster](#launch-the-cluster)
+    - [Get started with Kubernetes](#get-started-with-kubernetes)
 
-You can read documentation on how to install terraform [here](https://www.terraform.io/intro/getting-started/install.html)
+## Pre-requisites
+
+- a proper terraform installation
+
+  You can find information on how to install terraform [here](https://www.terraform.io/intro/getting-started/install.html).
+
+- an OVH Public Cloud project
+  
+  Create a public cloud project on OVH following the [official documentation](https://docs.ovh.com/gb/en/public-cloud/getting_started_with_public_cloud_logging_in_and_creating_a_project/).
+
+  Create an Openstack user ([official documentation](https://docs.ovh.com/gb/en/public-cloud/configure_user_access_to_horizon/)).
+  Then download the Openstack configuration file. You can get it from [OVH Manager](https://www.ovh.com/manager/cloud/), or from [Horizon interface](https://horizon.cloud.ovh.net/project/api_access/openrc/).
+
+  Source the configuration file:
+
+  ```bash
+  $ source openrc.sh
+  Please enter your OpenStack Password:
+  ```
+  
+- (Optional) Install the openstack cli
+
+  ```bash
+  $ sudo pip install python-openstackclient==3.15.0
+  ```
+
+- an ssh public key or openstack keypair
+
+  The module allows you to either use an ssh public key file or a predefined openstack keypair
+
+  Example: 
+
+   ```bash
+   # Generate a new keypair without passphrase
+   $ ssh-keygen -f terraform_ssh_key -q
+   # Add it to the ssh-agent 
+   $ eval $(ssh-agent)
+   $ ssh-add terraform_ssh_key
+   ```
+   
+   Or:
+   
+   ```bash
+   $ openstack keypair create -f value k8s > ssh_key
+   $ openstack keypair show --public-key -f value k8s > ssh_key.pub
+   $ chmod 0600 ./ssh_key
+   # Add it to the ssh-agent
+   $ eval $(ssh-agent)
+   $ ssh-add ./ssh_key
+   ```
 
 ## Configuration
-1. Copy variable file, then edit it if needed.
-This allow terraform to autoload those variables
 
-   ```bash
-   cp terraform.tfvars.sample terraform.tfvars
-   ```
-
-2. Create a public cloud project on OVH following the [official documentation](https://docs.ovh.com/gb/en/public-cloud/getting_started_with_public_cloud_logging_in_and_creating_a_project/).[]
-
-   Create an Openstack user ([official documentation](https://docs.ovh.com/gb/en/public-cloud/configure_user_access_to_horizon/)).
-   Then download the Openstack configuration file. You can get it from [OVH Manager](https://www.ovh.com/manager/cloud/), or from [Horizon interface](https://horizon.cloud.ovh.net/project/api_access/openrc/).
-
- Source the configuration file:
-
-   ```bash
-   $ source openrc.sh
-   Please enter your OpenStack Password:
-
-   ```
-3. Create or reuse a ssh key pair. Careful this keypair should not be using passphrase!
-
-```bash
-# Generate a new keypair without passphrase
-$ ssh-keygen -f terraform_ssh_key -q -N "" -t rsa -b 4096
-# Add it to the ssh-agent
-$ ssh-add terraform_ssh_key
-```
-
-   If you generated a new keypair, set `public_sshkey` with its path in `terraform.tfvars`.
-
-## Build the image
-
-Please refer to the [provided example](../k8s-glance-image/README.md)
-
-## Run it
+1. You have to init terraform (run once):
 
 ```bash
 $ terraform init
@@ -53,10 +72,33 @@ Initializing modules...
 - module.kube
 [...]
 Terraform has been successfully initialized!
+```
 
-$ terraform apply
+1. (Optional) Customize default values file, then edit it if needed.
+   This allow terraform to autoload those variables
+
+   ```bash
+   cp terraform.tfvars.sample terraform.tfvars
+   ```
+
+## Launch the cluster
+
+You have to choose an openstack region to launch the cluster in, and a keypair name and/or ssh public key according to your preferences. You can either setup these variables in the customized `.tfvars` file (see [previous paragraph](#configuration)) or pass them in the command line:
+
+Using an openstack keypair:
+
+```bash
+$ terraform apply -var region=GRA3 -var key_pair=k8s
 [...]
 ```
+
+Or using an ssh public key:
+
+```bash
+$ terraform apply -var region=GRA3 -var public_sshkey=./ssh_key.pub
+[...]
+```
+
 
 This should give you an infra with:
 
@@ -65,7 +107,7 @@ This should give you an infra with:
   * Untainted nodes (pods can run on masters)
   * kube-proxy for services
 
-## Get Started
+## Get Started with Kubernetes
 
 Get help with following command:
 
@@ -73,21 +115,17 @@ Get help with following command:
 $ terraform output helper
 Your kubernetes cluster is up.
 
-Check if cluster is running:
+Retrieve k8s configuration locally:
 
-    $ [...]
+    $ mkdir -p ~/.kube/myk8s
+    $ ssh core@A.B.C.D sudo cat /etc/kubernetes/admin.conf > ~/.kube/myk8s/config
+    $ kubectl --kubeconfig ~/.kube/myk8s/config get nodes
 
-Configure the client:
+You can also ssh into one of your instances:
 
-    $ [...]
-
-To connect to one of the instances:
-
-    $ [...]
-
-Run a pod:
-
-    $ [...]
+    $ ssh core@A.B.C.D
+    $ ssh core@A.B.D.E
+    $ ssh core@A.B.C.F
 
 Enjoy!
 ```
