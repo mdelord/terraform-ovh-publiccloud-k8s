@@ -34,7 +34,7 @@ before_install:
 - ./test/travis_setup.sh
 script:
 - export TF_VAR_name=TRAVIS_${TRAVIS_BUILD_NUMBER}
-- test/runtests.sh $OS_REGION_NAME publish
+- test/runtests.sh $OS_REGION_NAME publish delete_existing_keypair
 branches:
   only:
   - master
