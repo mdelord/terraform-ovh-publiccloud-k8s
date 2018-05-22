@@ -14,7 +14,7 @@ module "k8s" {
   worker_mode               = true
   cfssl                     = true
   etcd                      = true
-  image_name                = "CoreOS Stable K8S"
+  image_name                = "CoreOS Stable - OVH Kubernetes"
   flavor_name               = "b2-7"
   create_secgroups          = true
   associate_public_ipv4     = true
