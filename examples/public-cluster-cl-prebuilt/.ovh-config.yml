@@ -1,0 +1,31 @@
+name: terraform-ovh-publiccloud-k8s
+description: Simple k8s cluster from a prebuilt glance image
+
+inputs:
+    - key: OS_REGION_NAME
+      description: The region where the stack will be installed
+      type: openstackRegion
+      required: true
+    - key: OS_KEYPAIR_NAME
+      description: The keypair name used to spawn the instances
+      type: openstackKeypairName
+      required: false
+
+constraints:
+    - name: instances
+      values:
+      - flavor: s1-8
+        minimum: 3
+    - name: images
+      values:
+      - image: CoreOS Stable - OVH Kubernetes
+
+commands:
+    - name: init
+      command: terraform init
+
+    - name: deploy
+      command: terraform apply -var region=$OS_REGION_NAME -var remote_ip_prefix=0.0.0.0/0 -var key_pair=$OS_KEYPAIR_NAME
+
+    - name: helper
+      command: terraform output helper
