@@ -14,21 +14,18 @@ inputs:
 constraints:
     - name: instances
       values:
-      - flavor: b2-7
+      - flavor: s1-8
         minimum: 3
     - name: images
       values:
-      - image: CoreOS Stable K8S
-
-install:
-    - cp terraform.tfvars.sample terraform.tfvars
+      - image: CoreOS Stable - OVH Kubernetes
 
 commands:
     - name: init
       command: terraform init
 
     - name: deploy
-      command: terraform apply
+      command: terraform apply -var region=$OS_REGION_NAME -var remote_ip_prefix=0.0.0.0/0 -var key_pair=$OS_KEYPAIR_NAME
 
     - name: helper
       command: terraform output helper
